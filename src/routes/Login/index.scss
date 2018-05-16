@@ -1,0 +1,20 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 112px 0 24px;
+    background: url('https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    .login-page {
+        width: 370px;
+        margin: 0 auto;
+        .logo-container {
+            height: 100px;
+            background: url('../../assets/logo.png') no-repeat;
+            background-size: 250px;
+            background-position: 50% 50%;
+        }
+    }
+}

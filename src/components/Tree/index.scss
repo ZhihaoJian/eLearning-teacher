@@ -1,0 +1,43 @@
+.tree {
+    .add-node {
+        padding-right: 15px;
+        margin-top: -3px;
+        outline: none;
+        float: right;
+        a {
+            color: #4a4a4a;
+        }
+        svg {
+            margin: 0 6px;
+        }
+    }
+    .ant-collapse-header {
+        overflow: hidden;
+        &:focus {
+            outline: none;
+        }
+    }
+    .ant-collapse-content {
+        overflow: auto;
+    }
+}
+
+.ant-tree-iconEle {
+    height: 100% !important;
+    line-height: 100% !important;
+}
+
+.context-menu {
+    width: 100px;
+    div {
+        height: 30px;
+        &:hover {
+            background: #4a4a4a;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        span {
+            line-height: 30px;
+        }
+    }
+}

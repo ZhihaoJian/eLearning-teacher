@@ -1,0 +1,10 @@
+.test-status {
+    display: flex;
+    .test-status-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        margin: 0 1rem;
+        color: #a0a0a0;
+    }
+}

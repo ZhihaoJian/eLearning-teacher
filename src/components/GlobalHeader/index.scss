@@ -1,0 +1,48 @@
+$header-hover-color:#e6f7ff;
+$header-icon-padding:0 12px;
+.header {
+    background: #fff;
+    padding: 0;
+    margin-bottom: 1px;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+    .opera-container {
+        padding: $header-icon-padding;
+        float: right;
+        .header-search {
+            vertical-align: middle;
+            margin: 0 12px;
+        }
+        .notice-icon {
+            padding: $header-icon-padding;
+            &:hover {
+                background: $header-hover-color;
+            }
+        }
+        .avatar-container {
+            cursor: pointer;
+            display: inline-block;
+            padding: $header-icon-padding;
+            &:hover {
+                background: $header-hover-color;
+                transition: 0.5s background;
+            }
+            .name {
+                padding-left: 10px;
+                color: #696969;
+            }
+        }
+    }
+}
+
+.avatar-pop-menu {
+    width: 120px;
+    .menu-item {
+        transition: 0.5s background;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+    .setting-name {
+        padding-left: 10px;
+    }
+}

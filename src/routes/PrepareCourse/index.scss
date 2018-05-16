@@ -1,0 +1,19 @@
+.prepare-course-container {
+    .add-course-note {
+        width: 100%;
+    }
+    .prepare-course-list {
+        .ant-list-item-extra {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .course-remark {
+            color: #5f5f5f;
+        }
+        .course-info {
+            color: #a0a0a0;
+            padding: 0 12px;
+        }
+    }
+}

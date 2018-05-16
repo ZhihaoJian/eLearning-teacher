@@ -1,0 +1,25 @@
+.chart-card-col {
+    display: flex;
+    justify-content: center;
+    .chart-card {
+    width: 350px;
+    .chart-card-meta {
+        .ant-card-meta-title {
+            color: #737373;
+            font-size: 14px;
+        }
+    }
+    .card-chart-number {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        white-space: nowrap;
+        color: rgba(0, 0, 0, .85);
+        margin-top: 4px;
+        margin-bottom: 0;
+        font-size: 30px;
+        line-height: 38px;
+        height: 38px;
+    }
+}
+}
