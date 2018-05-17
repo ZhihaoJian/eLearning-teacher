@@ -11,7 +11,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '班级列表'
             }
@@ -23,7 +23,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '班级列表'
             }
@@ -35,7 +35,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '班级列表',
                 href: '/classroom',
@@ -50,7 +50,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '班级列表',
                 href: '/classroom',
@@ -66,7 +66,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '班级列表',
                 href: '/classroom',
@@ -79,7 +79,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             },
             {
                 title: '测试',
@@ -97,7 +97,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '备课区'
             }
@@ -109,9 +109,10 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
-                title: '备课区'
+                title: '备课区',
+                href: '/prepare-course'
             }
         ],
         menuData: BasicMenuData,
@@ -121,9 +122,10 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
-                title: '备课区'
+                title: '备课区',
+                href: '/prepare-course'
             }
         ],
         menuData: BasicMenuData,
@@ -133,7 +135,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '备课区'
             }
@@ -145,7 +147,7 @@ const routerConfig = {
         breadcrumbList: [
             {
                 title: '首页',
-                href: '/',
+                href: '/classroom',
             }, {
                 title: '代码相似度检测'
             }
@@ -183,7 +185,7 @@ function getDynamicComponent(path) {
 function formatMenuData(menuData, routeParam) {
     return menuData.map((item, index) => {
         return (
-            <MenuItem key={`${index + 1}`} >
+            <MenuItem key={`${item.path}`} >
                 <NavLink to={`${item.path + routeParam}`} >
                     <Icon type={item.icon} />
                     <span>{item.name}</span>

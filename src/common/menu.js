@@ -40,7 +40,7 @@ export const BasicMenuData = [
     {
         name: '班级列表',
         icon: 'user',
-        path: '/classroom'
+        path: '/classroom',
     },
     {
         name: '备课区',

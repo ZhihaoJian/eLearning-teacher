@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Popconfirm, Input, Collapse } from 'antd';
-import './index.scss';
+import { Popconfirm, Input } from 'antd';
 import FaFileText from 'react-icons/lib/fa/file-text-o';
 import FaFolder from 'react-icons/lib/fa/folder-o';
 import FaFileCode from 'react-icons/lib/fa/file-code-o';
@@ -9,9 +8,9 @@ import FaInfo from 'react-icons/lib/fa/info-circle';
 import FaImage from 'react-icons/lib/fa/image';
 import FaHtml5 from 'react-icons/lib/fa/html5';
 import FaCSS3 from 'react-icons/lib/fa/css3';
-import FaPlus from 'react-icons/lib/fa/plus';
 import { Tree, Tooltip } from 'antd';
 import NewTree from './NewTree';
+import './index.scss';
 
 const TreeNode = Tree.TreeNode;
 const UPDATE = 'UPDATE';
@@ -41,7 +40,8 @@ export default class TreeContainer extends React.Component {
     onSelect = (selectedKeys, info) => {
         this.setState({ selectedKeys })
         const content = info.node.props.content;
-        this.props.onSelected(selectedKeys[0], content);
+        const isLeaf = !!info.node.isLeaf();
+        this.props.onSelected(selectedKeys[0], content, isLeaf);
     }
 
     /**
@@ -63,12 +63,13 @@ export default class TreeContainer extends React.Component {
      */
     generateMenuTooltip = (node) => {
         let menu;
+        let fileName = node.props.title;
         if (node.isLeaf()) {
             menu = (
                 <React.Fragment>
                     <Popconfirm
                         placement='right'
-                        title={<Input onChange={(e) => this.setState({ fileName: e.target.value })} />}
+                        title={<Input defaultValue={fileName} onChange={(e) => this.setState({ fileName: e.target.value })} />}
                         onConfirm={this.onComfirmUpdate}
                         okText='确定'
                         cancelText='取消 '
@@ -86,7 +87,7 @@ export default class TreeContainer extends React.Component {
                     <div className={ADD_VIDEO_RESOURCE} onClick={() => this.onUploadResource()} ><span>上传视频资源</span></div>
                     <Popconfirm
                         placement='right'
-                        title={<Input onChange={(e) => this.setState({ fileName: e.target.value })} />}
+                        title={<Input defaultValue={fileName} onChange={(e) => this.setState({ fileName: e.target.value })} />}
                         onConfirm={this.onComfirmUpdate}
                         okText='确定'
                         cancelText='取消 '
@@ -148,7 +149,6 @@ export default class TreeContainer extends React.Component {
                         }]
                     });
                 } else if (type === DEL) {
-                    // const deleteIndex = Number.parseInt(node.key.slice(-1), 10);
                     const { gData } = this.state;
                     const index = gData.findIndex(v => v.key === node.key);
                     //处理删除根节点问题和删除非根结点问题
@@ -305,10 +305,18 @@ export default class TreeContainer extends React.Component {
     addRootNode = (e) => {
         e.stopPropagation();
         const node = e.target;
-        let { gData } = this.state;
-        const newLength = Number.parseInt(gData[gData.length - 1].key.slice(-1), 10) + 1;
         let target = node.nodeName !== 'A' ? node.closest('a') : node;
         const type = target.dataset['type'];
+        let { gData } = this.state;
+
+        //处理空树添加结点问题
+        let newLength;
+        if (!gData.length) {
+            newLength = 0;
+        } else {
+            newLength = Number.parseInt(gData[gData.length - 1].key.slice(-1), 10) + 1;
+        }
+
         if (type === ADD_ROOT_FILE) {
             gData.push({
                 key: `0-${newLength}`,

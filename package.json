@@ -135,6 +135,10 @@
     "/course": {
       "target": "http://192.168.88.2:9090",
       "changeOrigin": true
+    },
+    "/courseNode": {
+      "target": "http://192.168.88.2:9090",
+      "changeOrigin": true
     }
   }
 }

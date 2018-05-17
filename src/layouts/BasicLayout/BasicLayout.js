@@ -1,18 +1,19 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { withRouter } from 'react-router-dom';
+import { loadDynamicComponent } from '../../common/router';
 import Footer from '../../components/GlobalFooter/GlobalFooter';
+import GlobalHeader from '../../components/GlobalHeader/index';
 import './BasicLayout.css';
 import 'ant-design-pro/dist/ant-design-pro.css';
-import GlobalHeader from '../../components/GlobalHeader/index';
-import { loadDynamicComponent } from '../../common/router';
+
 const { Sider, Content } = Layout;
 
 class BasicLayout extends React.Component {
 
     state = {
         collapsed: false,
-        DynamicComponent: null
+        DynamicComponent: null,
     };
 
     render() {
@@ -26,7 +27,11 @@ class BasicLayout extends React.Component {
                     collapsed={this.state.collapsed}
                 >
                     <div className="logo" />
-                    <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+                    <Menu
+                        theme="dark"
+                        mode="inline"
+                        selectedKeys={[this.props.location.pathname]}
+                    >
                         {formatedMenuData}
                     </Menu>
                 </Sider>
@@ -42,7 +47,7 @@ class BasicLayout extends React.Component {
                     </Content>
                     <Footer />
                 </Layout>
-            </Layout>
+            </Layout >
         );
     }
 }
