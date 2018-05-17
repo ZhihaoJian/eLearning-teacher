@@ -7,25 +7,28 @@ import BasicLayout from './layouts/BasicLayout/BasicLayout';
 import ClassRoom from './routes/ClassRoom/index';
 import Login from './routes/Login/Login';
 
-import { store } from './redux/app.redux';
+import { store, persistor } from './redux/app.redux';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 class App extends React.Component {
     render() {
         return (
             <Provider store={store} >
-                <LocaleProvider locale={zh_CN} >
-                    <BrowserRouter>
-                        <Switch>
-                            <Route path='/login' component={Login} />
-                            <Route path='/' render={() => (
-                                <BasicLayout>
-                                    <ClassRoom />
-                                </BasicLayout>
-                            )} />
-                        </Switch>
-                    </BrowserRouter>
-                </LocaleProvider >
+                <PersistGate loading={null} persistor={persistor}>
+                    <LocaleProvider locale={zh_CN} >
+                        <BrowserRouter>
+                            <Switch>
+                                <Route path='/login' component={Login} />
+                                <Route path='/' render={() => (
+                                    <BasicLayout>
+                                        <ClassRoom />
+                                    </BasicLayout>
+                                )} />
+                            </Switch>
+                        </BrowserRouter>
+                    </LocaleProvider >
+                </PersistGate>
             </Provider>
         )
     }

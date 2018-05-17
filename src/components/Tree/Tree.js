@@ -107,8 +107,9 @@ export default class FolderTree extends React.Component {
         //生成tooltip
         let menu = this.generateMenuTooltip(node);
         const currentNodePosition = node.props.pos;
+        const eventKey = node.props.eventKey;
         //保存点击结点位置和点击位置
-        this.setState({ selectedKeys: [currentNodePosition], currentNodePosition });
+        this.setState({ selectedKeys: [eventKey], currentNodePosition });
         //渲染context menu
         this.renderCm(info, menu);
     }
@@ -130,7 +131,8 @@ export default class FolderTree extends React.Component {
             } else {
                 if (type === ADD) {
                     const children = node.children;
-                    const key = `${node.key}-${children.length}`
+                    const newLength = Number.parseInt(children[children.length - 1].key.slice(-1), 10) + 1;
+                    const key = `${node.key}-${newLength}`
                     children.push({ key, content: '' });
                 } else if (type === UPDATE) {
                     this.setState({ node })
@@ -145,12 +147,14 @@ export default class FolderTree extends React.Component {
                         }]
                     });
                 } else if (type === DEL) {
-                    const deleteIndex = Number.parseInt(node.key.slice(-1), 10);
+                    // const deleteIndex = Number.parseInt(node.key.slice(-1), 10);
+                    const { gData } = this.state;
+                    const index = gData.findIndex(v => v.key === node.key);
                     //处理删除根节点问题和删除非根结点问题
                     if (!parentNode) {
-                        this.state.gData.splice(deleteIndex, 1);
+                        gData.splice(index, 1);
                     } else {
-                        parentNode.children.splice(deleteIndex, 1);
+                        parentNode.children.splice(index, 1);
                     }
                 }
             }
@@ -161,14 +165,14 @@ export default class FolderTree extends React.Component {
      * 点击context menu
      */
     onContextMenuClick = (e) => {
-        const { currentNodePosition } = this.state;
+        const { selectedKeys } = this.state;
         const target = e.target;
         const node = target.nodeName === 'SPAN' ? target.parentElement : target;
         const type = node.className;
 
         //根据nodePost前三位获取入口结点
         //再根据nodePost剩余的位数判断索引位置
-        const rootKey = currentNodePosition.slice(0, 3);
+        const rootKey = selectedKeys[0].slice(0, 3);
         const data = this.state.gData;
         const rootNode = data.filter(v => v.key === rootKey);
 
@@ -301,19 +305,20 @@ export default class FolderTree extends React.Component {
         e.stopPropagation();
         const node = e.target;
         let { gData } = this.state;
+        const newLength = Number.parseInt(gData[gData.length - 1].key.slice(-1), 10) + 1;
         let target = node.nodeName !== 'A' ? node.closest('a') : node;
         const type = target.dataset['type'];
         if (type === ADD_ROOT_FILE) {
             gData.push({
-                key: `0-${gData.length}`,
+                key: `0-${newLength}`,
                 title: '新建文本'
             })
         } else if (type === ADD_ROOT_FOLDER) {
             gData.push({
-                key: `0-${gData.length}`,
+                key: `0-${newLength}`,
                 title: '新建文件夹',
                 children: [{
-                    key: `0-${gData.length}-0`
+                    key: `0-${newLength}-0`
                 }]
             })
         }

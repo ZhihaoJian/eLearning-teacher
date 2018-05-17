@@ -1,6 +1,6 @@
 const UPDATE_EXAM_QUESTION = 'UPDATE_EXAM_QUESTION';
 const SUBMIT_NEW_EXAM = 'SUBMIT_NEW_EXAM';
-const RESET = 'RESET';
+const RESET_ADD_EXAM = 'RESET_ADD_EXAM';
 const initState = {
     score: 1,
     questionContent: '',
@@ -15,7 +15,7 @@ export function examsReducers(state = initState, action) {
             return { ...state, ...action.payload }
         case SUBMIT_NEW_EXAM:
             return { ...state }
-        case RESET:
+        case RESET_ADD_EXAM:
         default:
             return initState;
     }
@@ -30,5 +30,5 @@ export const updateExamQuestion = (exam) => {
 }
 
 export const reset = () => {
-    return { type: RESET }
+    return { type: RESET_ADD_EXAM }
 }
