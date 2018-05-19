@@ -1,39 +1,29 @@
 import React from 'react';
-import FolderTree from '../../components/Tree/Tree';
-import { Row, Col, Card, Button, Upload, Modal, Icon, message } from 'antd';
+import { Row, Col, Card, Button, Upload, Modal, Icon } from 'antd';
 import BraftEditor from 'braft-editor'
 import 'braft-editor/dist/braft.css';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { editorConfig } from '../../common/editor-config';
 import ButtonGroup from 'antd/lib/button/button-group';
-import { treeData } from '../../mock/data';
+// import { treeData } from '../../mock/data';
 import { COURSE_RESOURCE_PROPS_CONFIG } from '../../common/upload.config';
-import Axios from 'axios';
-import { onAddText, onAddFolder, onSave, onLoadHistoryNoteInfo } from '../../redux/AddNote.redux';
+import { uploadCourseResource, addTreeNote } from '../../service/AddExam.service';
 import { withRouter } from 'react-router-dom';
-import QueryString from '../../utils/query-string';
-import { connect } from 'react-redux';
+import TreeContainer from '../../components/Tree/TreeContainer'
 
 const Dragger = Upload.Dragger;
 
 @withRouter
-@connect(
-    state => state.addNoteReducers,
-    { onAddText, onAddFolder, onSave, onLoadHistoryNoteInfo }
-)
 export default class AddNote extends React.Component {
 
     state = {
         selectKey: '',
         content: '',
-        treeData,
+        treeData: [],
         visible: false,
         confirmLoading: false,
-        fileList: []
-    }
-
-    componentDidMount() {
-        const { id } = QueryString.parse(this.props.location.search);
+        fileList: [],
+        disabled: true
     }
 
     /**
@@ -57,6 +47,10 @@ export default class AddNote extends React.Component {
         else {
             if (node.children) {
                 this.updateNodeContent(node.children, content);
+            }
+            //处理根节点是文本的情况
+            else if (node.key === this.state.selectKey) {
+                node.content = content;
             }
         }
     }
@@ -86,8 +80,8 @@ export default class AddNote extends React.Component {
      * @param selectkey 选中结点的key值
      * @param content 选中结点的内容 
      */
-    handleUpdateEditorContent = (selectKey, content) => {
-        this.setState({ selectKey, content })
+    handleUpdateEditorContent = (selectKey, content, isLeaf) => {
+        this.setState({ selectKey, content, disabled: !isLeaf })
         this.editorInstance.setContent(content);
     }
 
@@ -107,15 +101,10 @@ export default class AddNote extends React.Component {
         fileList.forEach(file => {
             formData.append('files', file)
         });
-        this.setState({ confirmLoading: true });
-        Axios.post('//jsonplaceholder.typicode.com/posts/', formData)
-            .then(res => {
-                message.success(`${fileList[0]} 文件上传成功!`)
-                this.setState({ confirmLoading: false })
-            }).catch(err => {
-                message.error(`${fileList[0]} 文件上传失败!`)
-                this.setState({ confirmLoading: false })
-            })
+        this.setState({ confirmLoading: true }, () => {
+            uploadCourseResource(formData).then(res => this.setState({ confirmLoading: false }))
+        })
+
     }
 
     /**
@@ -147,18 +136,20 @@ export default class AddNote extends React.Component {
                             bordered={false}
                             hoverable
                         >
-                            <FolderTree
+                            <TreeContainer
                                 onUpload={() => this.setState({ visible: true })}
                                 updateTree={treeData => this.renderUpdatedTree(treeData)}
                                 dataSource={this.state.treeData}
-                                onSelected={(selectKey, content) => this.handleUpdateEditorContent(selectKey, content)}
+                                onSelected={(selectKey, content, isLeaf) => this.handleUpdateEditorContent(selectKey, content, isLeaf)}
                             />
+
                         </Card>
                     </Col>
                     <Col span={17} >
                         <Card>
                             <BraftEditor
                                 ref={instance => this.editorInstance = instance}
+                                disabled={this.state.disabled}
                                 {...editorProps}
                             />
                         </Card>

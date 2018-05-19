@@ -1,9 +1,11 @@
 import React from 'react';
-import { Upload, Icon, message, Button } from 'antd';
+import { Upload, Icon, message, Button, Select } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { withRouter } from 'react-router-dom';
 import TestResult from './TestResult';
+import { detectCode } from '../../service/SimilarCode.service';
 const Dragger = Upload.Dragger;
+const Option = Select.Option;
 
 @withRouter
 export default class SimilarCode extends React.Component {
@@ -13,7 +15,8 @@ export default class SimilarCode extends React.Component {
         this.state = {
             fileList: [],
             uploading: false,
-            data: []
+            data: [],
+            detectLevel: { key: 'l' }
         }
     }
 
@@ -28,16 +31,19 @@ export default class SimilarCode extends React.Component {
             uploading: true,
         });
 
-        fetch('/detect', {
-            body: formData,
-            method: 'post',
-        }).then(res => res.json())
-            .then(data => {
-                this.setState({ uploading: false, data })
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        detectCode({
+            formData,
+            level: this.state.detectLevel
+        }).then(data => {
+            this.setState({ uploading: false, data })
+        })
+    }
+
+    /**
+     * 初级查重和高级查重切换
+     */
+    handleChange = (selectedValue) => {
+        this.setState({ detectLevel: selectedValue })
     }
 
     render() {
@@ -73,7 +79,27 @@ export default class SimilarCode extends React.Component {
         };
 
         return (
-            <PageHeaderLayout title='代码相似度检测' breadcrumbList={this.props.breadcrumbList} >
+            <PageHeaderLayout
+                title='代码相似度检测'
+                breadcrumbList={this.props.breadcrumbList}
+                action={(
+                    <React.Fragment>
+                        <Select labelInValue defaultValue={this.state.detectLevel} onChange={this.handleChange}>
+                            <Option value="l">初级查重</Option>
+                            <Option value="h">高级查重</Option>
+                        </Select>
+                        <Button
+                            style={{ marginTop: 10 }}
+                            type="primary"
+                            onClick={() => this.handleUpload()}
+                            disabled={this.state.fileList.length <= 1}
+                            loading={this.state.uploading}
+                        >
+                            {this.state.uploading ? '正在检测' : '开始检测'}
+                        </Button>
+                    </React.Fragment>
+                )}
+            >
                 <Dragger {...uploadProps}>
                     <p className="ant-upload-drag-icon">
                         <Icon type="inbox" />
@@ -83,15 +109,7 @@ export default class SimilarCode extends React.Component {
                     <p className="ant-upload-hint">目前只支持 C、Python、Java文件检测</p>
                 </Dragger>
 
-                <Button
-                    style={{ marginTop: 10 }}
-                    type="primary"
-                    onClick={this.handleUpload}
-                    disabled={this.state.fileList.length <= 1}
-                    loading={this.state.uploading}
-                >
-                    {this.state.uploading ? '正在检测' : '开始检测'}
-                </Button>
+
                 {
                     this.state.data.length ? <TestResult dataSource={this.state.data} /> : null
                 }
