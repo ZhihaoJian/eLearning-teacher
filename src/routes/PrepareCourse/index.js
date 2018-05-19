@@ -1,28 +1,30 @@
 import React from 'react';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { withRouter, Link } from 'react-router-dom';
-import { Button, Card, List, Popconfirm } from 'antd';
+import { Button, Card, List, Popconfirm, message } from 'antd';
 import AddNoteForm from './AddNoteForm';
-import { connect } from 'react-redux';
-import { addCourseInfo, loadCourseList, deleteCourse } from '../../redux/AddNote.redux';
+import { loadCourseList, deleteCourse, addCourseInfo } from '../../service/AddExam.service';
 import './index.scss';
 
 @withRouter
-@connect(
-    state => state.addNoteReducers,
-    { addCourseInfo, loadCourseList, deleteCourse }
-)
 export default class PrepareCourse extends React.Component {
 
     state = {
         loading: false,
         loadmore: false,
         visible: false,
-        confirmLoading: false
+        confirmLoading: false,
+        courseList: []
     }
 
     componentDidMount() {
-        this.props.loadCourseList();
+        this.fetchData();
+    }
+
+    fetchData = (pageSize = 10, current = 0) => {
+        loadCourseList(pageSize, current).then(res => {
+            this.setState({ courseList: res.content })
+        })
     }
 
     onAddCouseNote() {
@@ -34,19 +36,19 @@ export default class PrepareCourse extends React.Component {
         this.setState({
             confirmLoading: true
         }, () => {
-            this.props.addCourseInfo(data)
-                .then(id => {
-                    this.setState({ visible, confirmLoading: false })
-                    this.props.history.push(`/prepare-course/add?id=${id}`);
-                })
+            addCourseInfo(data).then(id => {
+                message.success('正在为您准备备课区, 请耐心等待!');
+                this.setState({ visible, confirmLoading: false })
+                this.props.history.push(`/prepare-course/add?id=${id}`);
+            })
         })
     }
 
     onDeleteCourse = (id) => {
-        this.props.deleteCourse(id)
-            .then(() => {
-                this.props.loadCourseList();
-            })
+        deleteCourse(id).then(() => {
+            message.success('删除成功!');
+            this.fetchData();
+        })
     }
 
     onCancel = visible => {
@@ -72,17 +74,17 @@ export default class PrepareCourse extends React.Component {
                 >
                     <List
                         className="prepare-course-list"
-                        loading={this.state.loading}
+                        loading={this.props.loading}
                         size='large'
                         itemLayout="horizontal"
                         pagination={{ pageSize: 5 }}
                         loadMore={this.state.loadMore}
-                        dataSource={this.props.courseList}
+                        dataSource={this.state.courseList}
                         renderItem={item => (
                             <List.Item
                                 actions={
                                     [
-                                        <Link to={`/prepare-course/edit?id=${item.id}`}>编辑</Link>,
+                                        <Link to={`/prepare-course/edit?id=${item.id}&name=${encodeURIComponent(item.name)}`}>编辑</Link>,
                                         <Popconfirm
                                             title='确认要删除改备课信息?'
                                             onConfirm={() => this.onDeleteCourse(item.id)}
