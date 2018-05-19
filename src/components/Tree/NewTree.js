@@ -26,16 +26,20 @@ export default class NewTree extends React.Component {
                             )
                         }
                     >
-                        <Tree
-                            draggable
-                            showIcon
-                            defaultSelectedKeys={this.props.selectedKeys}
-                            onSelect={this.props.onSelect}
-                            onRightClick={this.props.onRightClick}
-                            onDrop={this.props.onDrop}
-                        >
-                            {this.props.loop(this.props.gData)}
-                        </Tree>
+                        {
+                            this.props.gData.length > 0 ? (
+                                <Tree
+                                    draggable
+                                    showIcon
+                                    defaultSelectedKeys={this.props.selectedKeys}
+                                    onSelect={this.props.onSelect}
+                                    onRightClick={this.props.onRightClick}
+                                    onDrop={this.props.onDrop}
+                                >
+                                    {this.props.loop(this.props.gData)}
+                                </Tree>
+                            ) : <p style={{ textAlign: "center", margin: 0 }} >点击右上角的图标以创建目录或文件</p>
+                        }
                     </Collapse.Panel>
                 </Collapse>
             </div>
