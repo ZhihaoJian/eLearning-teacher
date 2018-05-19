@@ -18,7 +18,7 @@ export default class TestResult extends React.Component {
     expandedRowRender = ({ similarity_detail }) => {
         const keys = Object.keys(similarity_detail);
         const newData = keys.map((v, idx) => {
-            const fnNames = v.replace(/\'|\(|\)|\s/gi, '').split(',');
+            const fnNames = v.match(/(\w|\s)+\.(\w|\s)*\((.|\s)*?\)/g);
             const similarRate = similarity_detail[keys[idx]];
             return {
                 origin_fn: fnNames[0],
