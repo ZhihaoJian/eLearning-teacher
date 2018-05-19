@@ -26,15 +26,13 @@ export default class SimilarCode extends React.Component {
         fileList.forEach((file) => {
             formData.append('files[]', file);
         });
+        formData.append('level', this.state.detectLevel.key);
 
         this.setState({
             uploading: true,
         });
 
-        detectCode({
-            formData,
-            level: this.state.detectLevel
-        }).then(data => {
+        detectCode(formData).then(data => {
             this.setState({ uploading: false, data })
         })
     }

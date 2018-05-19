@@ -1,9 +1,9 @@
 import { request } from '../utils/fetch';
 
-export const detectCode = ({ formData, level }) => {
+export const detectCode = (formData) => {
     return request({
         method: 'post',
-        url: `/detect?level=${level.key}`,
+        url: `/detect`,
         data: formData
     })
 }
