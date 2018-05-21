@@ -23,13 +23,20 @@ const ADD_VIDEO_RESOURCE = 'ADD_VIDEO_RESOURCE';
 
 export default class TreeContainer extends React.Component {
 
-    state = {
-        visible: false,
-        gData: this.props.dataSource,
-        selectedKeys: [],
-        currentNodePosition: '',
-        node: null,
-        fileName: ''
+    constructor(props) {
+        super(props);
+        this.state = {
+            visible: false,
+            gData: [],
+            selectedKeys: [],
+            currentNodePosition: '',
+            node: null,
+            fileName: ''
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({ gData: nextProps.dataSource })
     }
 
     /**
@@ -41,7 +48,7 @@ export default class TreeContainer extends React.Component {
         this.setState({ selectedKeys })
         const content = info.node.props.content;
         const isLeaf = !!info.node.isLeaf();
-        this.props.onSelected(selectedKeys[0], content, isLeaf);
+        this.props.onSelected(selectedKeys[0], content, isLeaf, { id: info.node.props.id });
     }
 
     /**
@@ -50,9 +57,13 @@ export default class TreeContainer extends React.Component {
     onComfirmUpdate = () => {
         let { node, fileName, gData } = this.state;
         node.title = fileName;
-        this.setState({ gData })
+        this.setState({ gData });
+        this.props.onUpdateNodeName({ id: node.id, name: fileName });
     }
 
+    /**
+     *  上传文件资源
+     */
     onUploadResource = () => {
         this.props.onUpload();
     }
@@ -64,6 +75,7 @@ export default class TreeContainer extends React.Component {
     generateMenuTooltip = (node) => {
         let menu;
         let fileName = node.props.title;
+        this.setState({ fileName })
         if (node.isLeaf()) {
             menu = (
                 <React.Fragment>
@@ -126,36 +138,56 @@ export default class TreeContainer extends React.Component {
     updateTree = (nodeList, type, parentNode) => {
         for (let i = 0; i < nodeList.length; i++) {
             const node = nodeList[i];
-            if (node.key !== this.state.selectedKeys[0]) {
+            if (node.nodeKey !== this.state.selectedKeys[0]) {
                 if (node.children) {
-                    this.updateTree(node.children, type, node)
+                    return this.updateTree(node.children, type, node)
                 }
             } else {
                 if (type === ADD) {
                     const children = node.children;
-                    const newLength = Number.parseInt(children[children.length - 1].key.slice(-1), 10) + 1;
-                    const key = `${node.key}-${newLength}`
-                    children.push({ key, content: '' });
+                    const newLength = Number.parseInt(children[children.length - 1].nodeKey.slice(-1), 10) + 1;
+                    const key = `${node.nodeKey}-${newLength}`
+                    const file = { key, content: '' };
+                    children.push(file);
+                    return {
+                        nodeKey: key,
+                        node: file,
+                        parentKey: node.nodeKey,
+                        content: '',
+                        isLeaf: true,
+                        title: '新建文本'
+                    }
                 } else if (type === UPDATE) {
                     this.setState({ node })
                 } else if (type === ADD_FOLDER) {
-                    node.children.push({
-                        key: `${node.key}-${node.children.length}`,
+                    const folder = {
+                        key: `${node.nodeKey}-${node.children.length}`,
                         title: '新建文件夹',
                         isLeaf: false,
                         children: [{
-                            key: `${node.key}-${node.children.length}-0`,
+                            key: `${node.nodeKey}-${node.children.length}-0`,
                             isLeaf: true
                         }]
-                    });
+                    };
+                    node.children.push(folder);
+                    return {
+                        nodeKey: `${node.nodeKey}-${node.children.length}`,
+                        parentKey: node.nodeKey,
+                        node: folder,
+                        title: '新建文件夹',
+                        isLeaf: false,
+                    }
                 } else if (type === DEL) {
                     const { gData } = this.state;
-                    const index = gData.findIndex(v => v.key === node.key);
+                    const index = gData.findIndex(v => v.key === node.nodeKey);
                     //处理删除根节点问题和删除非根结点问题
                     if (!parentNode) {
                         gData.splice(index, 1);
                     } else {
                         parentNode.children.splice(index, 1);
+                    }
+                    return {
+                        nodeKey: node.id,
                     }
                 }
             }
@@ -174,12 +206,13 @@ export default class TreeContainer extends React.Component {
         //根据nodePost前三位获取入口结点
         //再根据nodePost剩余的位数判断索引位置
         const rootKey = selectedKeys[0].slice(0, 3);
-        const data = this.state.gData;
-        const rootNode = data.filter(v => v.key === rootKey);
+        // const data = this.state.gData;
+        const data = this.props.dataSource;
+        const rootNode = data.filter(v => v.nodeKey === rootKey);
 
-        this.updateTree(rootNode, type);
+        const info = this.updateTree(rootNode, type);
         this.setState({ gData: data })
-        this.props.updateTree(data);
+        this.props.updateTree(data, type, info);
     }
 
     /**
@@ -317,36 +350,66 @@ export default class TreeContainer extends React.Component {
             newLength = Number.parseInt(gData[gData.length - 1].key.slice(-1), 10) + 1;
         }
 
+        const newRootNode = {
+            key: `0-${newLength}`,
+            isRoot: true
+        }
+
         if (type === ADD_ROOT_FILE) {
-            gData.push({
-                key: `0-${newLength}`,
-                title: '新建文本'
-            })
+            Object.assign(newRootNode, { title: '新建文本' })
+            gData.push(newRootNode);
+            // gData.push({
+            //     key: `0-${newLength}`,
+            //     title: '新建文本',
+            //     isRoot: true
+            // })
         } else if (type === ADD_ROOT_FOLDER) {
-            gData.push({
-                key: `0-${newLength}`,
-                title: '新建文件夹',
-                children: [{
+            Object.assign(newRootNode, {
+                title: '新建文件夹', children: [{
                     key: `0-${newLength}-0`
                 }]
             })
+            gData.push(newRootNode);
+            // gData.push({
+            //     key: `0-${newLength}`,
+            //     isRoot: true,
+            //     title: '新建文件夹',
+            //     children: [{
+            //         key: `0-${newLength}-0`
+            //     }]
+            // })
         }
         this.setState({ gData })
+        this.props.updateTree(gData);
+        this.props.onAddNodeToServer(newRootNode, gData);
     }
 
     render() {
         const loop = data => {
             return data.map((item) => {
                 if (item.children) {
-                    return (<TreeNode icon={this.renderTreeIcon(item)} key={item.key} title={item.title} isLeaf={item.isLeaf} >
-                        {loop(item.children)}
-                    </TreeNode>);
+                    return (
+                        <TreeNode
+                            // icon={this.renderTreeIcon(item)}
+                            // isLeaf={!!item.isLeaf}
+                            key={item.nodeKey}
+                            dataRef={item}
+                            {...item}
+                        >
+                            {loop(item.children)}
+                        </TreeNode>);
                 }
-                return <TreeNode icon={this.renderTreeIcon(item)} key={item.key} title={item.title} content={item.content} isLeaf={item.isLeaf} />;
+                return <TreeNode
+                    // icon={this.renderTreeIcon(item)}
+                    // isLeaf={!!item.isLeaf}
+                    key={item.nodeKey}
+                    dataRef={item}
+                    {...item} />;
             });
         };
         return (
             <NewTree
+                loadData={this.props.loadData}
                 renderTreeIcon={this.renderTreeIcon}
                 addRootNode={this.addRootNode}
                 gData={this.state.gData}
