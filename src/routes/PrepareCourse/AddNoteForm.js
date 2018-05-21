@@ -1,18 +1,35 @@
 import React from 'react';
-import { Modal, Form, Input, InputNumber } from 'antd';
+import { Modal, Form, Input, InputNumber, Alert, Upload, Icon } from 'antd';
 import PropTypes from 'prop-types';
+import { Button } from 'antd/lib/radio';
+import { COURSE_RESOURCE_PROPS_CONFIG } from '../../common/upload.config';
 
 const FormItem = Form.Item;
 const TextArea = Input.TextArea;
 
 class AddNoteForm extends React.Component {
 
+    state = {
+        fileList: []
+    }
+    
     onOk = () => {
+        const { fileList } = this.state;
         const data = this.props.form.getFieldsValue();
-        this.props.onOk({ visible: false, data });
+        const formData = new FormData();
+        Object.keys(data).forEach(item => {
+            if (item === 'coverURL') {
+                formData.append('file', fileList[0])
+            } else {
+                formData.append([item], data[item]);
+            }
+        })
+
+        this.props.onOk({ visible: false, data: formData });
     }
 
     onCancel = () => {
+        this.setState({ fileList: [] })
         this.props.onCancel({ visible: false });
     }
 
@@ -25,57 +42,53 @@ class AddNoteForm extends React.Component {
                 destroyOnClose={true}
                 maskClosable={false}
                 visible={this.props.visible}
-                onOk={this.onOk}
-                onCancel={this.onCancel}
+                onOk={() => this.onOk()}
+                onCancel={() => this.onCancel()}
             >
+                <Alert style={{ marginBottom: 12 }} message="课程名称一旦确定将不能修改! 点击确定前再三确认!" banner />
                 <Form layout='vertical'>
                     <FormItem label='课程名称'>
                         {getFieldDecorator('name', {
                             rules: [{ required: true }]
                         })(
-                            <Input placeholder='课程名称' />
+                            <Input />
                         )}
                     </FormItem>
                     <FormItem label='简介' >
                         {getFieldDecorator('description', {
                             rules: [{ required: false }]
                         })(
-                            <TextArea placeholder='' />
+                            <TextArea />
                         )}
                     </FormItem>
                     <FormItem label='课程备注'>
                         {getFieldDecorator('remark', {
                             rules: [{ required: false }]
                         })(
-                            <Input placeholder='课程备注' />
+                            <TextArea />
                         )}
                     </FormItem>
                     <FormItem label='课程分类' >
                         {getFieldDecorator('type', {
                             rules: [{ required: false }]
                         })(
-                            <Input placeholder='课程分类' />
+                            <Input />
                         )}
                     </FormItem>
                     <FormItem label='封面' >
                         {getFieldDecorator('coverURL', {
                             rules: [{ required: false }]
                         })(
-                            <Input placeholder='封面' />
-                        )}
-                    </FormItem>
-                    <FormItem label='路径' >
-                        {getFieldDecorator('videoURL', {
-                            rules: [{ required: false }]
-                        })(
-                            <Input placeholder='路径' />
+                            <Upload {...COURSE_RESOURCE_PROPS_CONFIG(this, 'image')}>
+                                <Button><Icon type='upload' />上传封面</Button></Upload>
                         )}
                     </FormItem>
                     <FormItem label='学习人数' >
                         {getFieldDecorator('learningNumber', {
-                            rules: [{ required: false }]
+                            rules: [{ required: false }],
+                            initialValue: 0
                         })(
-                            <InputNumber min={0} placeholder='请输入学习人数' style={{ width: '100%' }} />
+                            <InputNumber min={0} style={{ width: '100%' }} />
                         )}
                     </FormItem>
                 </Form>
