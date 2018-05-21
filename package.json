@@ -11,6 +11,7 @@
     "babel-eslint": "7.2.3",
     "babel-jest": "20.0.3",
     "babel-loader": "7.1.2",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-react-app": "^3.1.1",
     "babel-runtime": "6.26.0",
     "bizcharts": "^3.1.7",
@@ -137,6 +138,14 @@
       "changeOrigin": true
     },
     "/courseNode": {
+      "target": "http://192.168.88.2:9090",
+      "changeOrigin": true
+    },
+    "/import": {
+      "target": "http://192.168.88.2:9090",
+      "changeOrigin": true
+    },
+    "/image": {
       "target": "http://192.168.88.2:9090",
       "changeOrigin": true
     }
