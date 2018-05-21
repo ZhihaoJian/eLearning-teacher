@@ -1,7 +1,8 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { withRouter } from 'react-router-dom';
-import { loadDynamicComponent } from '../../common/router';
+// import { loadDynamicComponent } from '../../common/router';
+import { loadDynamicComponent } from '../../common/router_v2';
 import Footer from '../../components/GlobalFooter/GlobalFooter';
 import GlobalHeader from '../../components/GlobalHeader/index';
 import './BasicLayout.css';
@@ -30,7 +31,7 @@ class BasicLayout extends React.Component {
                     <Menu
                         theme="dark"
                         mode="inline"
-                        selectedKeys={[this.props.location.pathname]}
+                        selectedKeys={[restProps.selectedPath, this.props.location.pathname]}
                     >
                         {formatedMenuData}
                     </Menu>

@@ -187,11 +187,11 @@ function getDynamicComponent(path) {
         const hasChildPath = currentPath.childPath ? true : false;
         currentPathConfig = hasChildPath ? currentPath.childPath : null;
         if (!currentPathConfig) {
-            return { ...currentPath }
+            return { ...currentPath, selectedPath: `/${pathNamesArray[0]}` }
         }
     }
     if (!getComponent) {
-        return { ...parentPathConfig };
+        return { ...parentPathConfig, selectedPath: `/${pathNamesArray[0]}` };
     }
 }
 
