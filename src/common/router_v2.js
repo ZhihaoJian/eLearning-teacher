@@ -170,6 +170,20 @@ function getRouteParam(path) {
     return { ...QueryString.parse(path) };
 }
 
+/**
+ * 格式化URL，作为sider的selectedKey
+ * @param {string} pathNamesArray 
+ */
+function formatSelectedKey(pathNamesArray) {
+    const selectedPath = [];
+    for (let i = 0; i < pathNamesArray.length; i++) {
+        let str = pathNamesArray.slice(0, i + 1).join('/');
+        selectedPath.push(str.padStart(str.length + 1, '/'));
+    }
+    return selectedPath;
+}
+
+
 //  1.  Assume path name is '/prepare-course/edit';
 //  2.  Use  String.split('/')    >>>>     ['','prepare-course','edit'];
 //  3.  To splice to first index in splited path array, we use  Array.splice(1)   >>>>   ['prepare-course','edit']
@@ -187,11 +201,11 @@ function getDynamicComponent(path) {
         const hasChildPath = currentPath.childPath ? true : false;
         currentPathConfig = hasChildPath ? currentPath.childPath : null;
         if (!currentPathConfig) {
-            return { ...currentPath, selectedPath: `/${pathNamesArray[0]}` }
+            return { ...currentPath, selectedKeys: formatSelectedKey(pathNamesArray) }
         }
     }
     if (!getComponent) {
-        return { ...parentPathConfig, selectedPath: `/${pathNamesArray[0]}` };
+        return { ...parentPathConfig, selectedKeys: formatSelectedKey(pathNamesArray) };
     }
 }
 

@@ -18,8 +18,8 @@ class BasicLayout extends React.Component {
     };
 
     render() {
-        const { DynamicComponent, formatedMenuData, ...restProps } = loadDynamicComponent(this.props.location);
-
+        const { location } = this.props;
+        const { DynamicComponent, formatedMenuData, ...restProps } = loadDynamicComponent(location);
         return (
             <Layout id='basic-layout' >
                 <Sider
@@ -31,7 +31,8 @@ class BasicLayout extends React.Component {
                     <Menu
                         theme="dark"
                         mode="inline"
-                        selectedKeys={[restProps.selectedPath, this.props.location.pathname]}
+                        // selectedKeys={[restProps.selectedPath, this.props.location.pathname]}
+                        selectedKeys={restProps.selectedKeys}
                     >
                         {formatedMenuData}
                     </Menu>
