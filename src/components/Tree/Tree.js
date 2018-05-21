@@ -329,11 +329,11 @@ export default class FolderTree extends React.Component {
         const loop = data => {
             return data.map((item) => {
                 if (item.children) {
-                    return (<TreeNode icon={this.renderTreeIcon(item)} key={item.key} title={item.title} isLeaf={item.isLeaf} >
+                    return (<TreeNode icon={this.renderTreeIcon(item)} key={item.key} title={item.title} isLeaf={item.isLeaf} {...item} >
                         {loop(item.children)}
                     </TreeNode>);
                 }
-                return <TreeNode icon={this.renderTreeIcon(item)} key={item.key} title={item.title} content={item.content} isLeaf={item.isLeaf} />;
+                return <TreeNode icon={this.renderTreeIcon(item)} key={item.key} title={item.title} content={item.content} isLeaf={item.isLeaf} {...item}/>;
             });
         };
         return (
