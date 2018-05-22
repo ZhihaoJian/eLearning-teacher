@@ -1,11 +1,14 @@
 import React from 'react';
 import QueryString from '../../utils/query-string';
 import { withRouter } from 'react-router-dom';
-import { Row, Col, Card, Spin } from 'antd';
+import { Row, Col, Icon, Tooltip } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import './index.scss';
-import { Chart, Geom, Axis, Tooltip } from 'bizcharts';
-const { Meta } = Card;
+import { ChartCard, Field, MiniArea, MiniBar, MiniProgress } from 'ant-design-pro/lib/Charts';
+import Trend from 'ant-design-pro/lib/Trend';
+import NumberInfo from 'ant-design-pro/lib/NumberInfo';
+import moment from 'moment';
+import numeral from 'numeral';
 
 @withRouter
 export default class DashBoard extends React.Component {
@@ -22,97 +25,73 @@ export default class DashBoard extends React.Component {
     }
 
     render() {
-        // 数据源
-        const data = [
-            { genre: 'Sports', sold: 275, income: 2300 },
-            { genre: 'Strategy', sold: 115, income: 667 },
-            { genre: 'Action', sold: 120, income: 982 },
-            { genre: 'Shooter', sold: 350, income: 5271 },
-            { genre: 'Other', sold: 150, income: 3710 }
-        ];
-
-        // 定义度量
-        const cols = {
-            sold: { alias: '销售量' },
-            genre: { alias: '游戏种类' }
-        };
 
         const title = QueryString.parse(this.props.location.search).name;
-
+        const visitData = [];
+        const beginDay = new Date().getTime();
+        for (let i = 0; i < 20; i += 1) {
+            visitData.push({
+                x: moment(new Date(beginDay + (1000 * 60 * 60 * 24 * i))).format('YYYY-MM-DD'),
+                y: Math.floor(Math.random() * 100) + 10,
+            });
+        }
         return (
             <PageHeaderLayout title={title} breadcrumbList={this.props.breadcrumbList} >
                 <Row>
-                    <Col span={6} className='chart-card-col' >
-                        <Spin spinning={this.state.loading}>
-                            <Card className='chart-card'>
-                                <Meta
-                                    title="总访问量"
-                                    className='chart-card-meta'
-                                />
-                                <div className='card-chart-number' >1000</div>
-                                <Chart width={300} data={data} scale={cols}>
-                                    <Axis name="genre" />
-                                    <Axis name="sold" />
-
-                                    <Tooltip />
-                                    <Geom type="interval" position="genre*sold" color="genre" />
-                                </Chart>
-                            </Card>
-                        </Spin>
+                    <Col span={24}>
+                        <ChartCard
+                            title="搜索用户数量"
+                            total={numeral(8846).format('0,0')}
+                            contentHeight={134}
+                        >
+                            <NumberInfo
+                                subTitle={<span>本周访问</span>}
+                                total={numeral(12321).format('0,0')}
+                                status="up"
+                                subTotal={17.1}
+                            />
+                            <MiniArea
+                                line
+                                height={45}
+                                data={visitData}
+                            />
+                        </ChartCard>
                     </Col>
-                    <Col span={6} className='chart-card-col' >
-                        <Spin spinning={this.state.loading} >
-                            <Card className='chart-card' >
-                                <Meta
-                                    title="总访问量"
-                                    className='chart-card-meta'
-                                />
-                                <div className='card-chart-number' >1000</div>
-                                <Chart width={300} data={data} scale={cols}>
-                                    <Axis name="genre" />
-                                    <Axis name="sold" />
-
-                                    <Tooltip />
-                                    <Geom type="interval" position="genre*sold" color="genre" />
-                                </Chart>
-                            </Card>
-                        </Spin>
+                    <Col span={24} style={{ marginTop: 24 }}>
+                        <ChartCard
+                            title="访问量"
+                            action={<Tooltip title="指标说明"><Icon type="info-circle-o" /></Tooltip>}
+                            total={numeral(8846).format('0,0')}
+                            footer={<Field label="日访问量" value={numeral(1234).format('0,0')} />}
+                            contentHeight={46}
+                        >
+                            <MiniBar
+                                height={46}
+                                data={visitData}
+                            />
+                        </ChartCard>
                     </Col>
-                    <Col span={6} className='chart-card-col' >
-                        <Spin spinning={this.state.loading} >
-                            <Card className='chart-card' >
-                                <Meta
-                                    title="总访问量"
-                                    className='chart-card-meta'
-                                />
-                                <div className='card-chart-number' >1000</div>
-                                <Chart width={300} data={data} scale={cols}>
-                                    <Axis name="genre" />
-                                    <Axis name="sold" />
-
-                                    <Tooltip />
-                                    <Geom type="interval" position="genre*sold" color="genre" />
-                                </Chart>
-                            </Card>
-                        </Spin>
-                    </Col>
-                    <Col span={6} className='chart-card-col' >
-                        <Spin spinning={this.state.loading} >
-                            <Card className='chart-card' >
-                                <Meta
-                                    title="总访问量"
-                                    className='chart-card-meta'
-                                />
-                                <div className='card-chart-number' >1000</div>
-                                <Chart width={300} data={data} scale={cols}>
-                                    <Axis name="genre" />
-                                    <Axis name="sold" />
-
-                                    <Tooltip />
-                                    <Geom type="interval" position="genre*sold" color="genre" />
-                                </Chart>
-                            </Card>
-                        </Spin>
+                    <Col span={24} style={{ marginTop: 24 }}>
+                        <ChartCard
+                            title="线上购物转化率"
+                            action={<Tooltip title="指标说明"><Icon type="info-circle-o" /></Tooltip>}
+                            total="78%"
+                            footer={
+                                <div>
+                                    <span>
+                                        周同比
+              <Trend flag="up" style={{ marginLeft: 8, color: 'rgba(0,0,0,.85)' }}>12%</Trend>
+                                    </span>
+                                    <span style={{ marginLeft: 16 }}>
+                                        日环比
+              <Trend flag="down" style={{ marginLeft: 8, color: 'rgba(0,0,0,.85)' }}>11%</Trend>
+                                    </span>
+                                </div>
+                            }
+                            contentHeight={46}
+                        >
+                            <MiniProgress percent={78} strokeWidth={8} target={80} />
+                        </ChartCard>
                     </Col>
                 </Row>
             </PageHeaderLayout >
