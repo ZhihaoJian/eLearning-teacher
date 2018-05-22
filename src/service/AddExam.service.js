@@ -28,7 +28,7 @@ export const addCourseInfo = (formData) => {
 export const uploadCourseResource = formData => {
     return request({
         method: 'post',
-        url: `/import/uploadVideo`,
+        url: `/courseNode/addCourseVideo`,
         data: formData
     });
 }

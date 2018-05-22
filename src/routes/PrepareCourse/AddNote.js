@@ -32,7 +32,11 @@ export default class AddNote extends React.Component {
         confirmLoading: false,
         fileList: [],
         disabled: true,
-        nodeID: null
+            nodeID: null,
+            uploadData: null,
+            isVideo: false,
+            savePath: ''
+        };
     }
 
     componentDidMount() {
@@ -61,7 +65,7 @@ export default class AddNote extends React.Component {
                 if (item.children) {
                     this.updateNodeContent(item.children, content);
                 }
-                else if (item.key === _this.state.selectKey) {
+                else if (item.nodeKey === _this.state.selectKey) {
                     item.content = content;
                     return;
                 }
@@ -72,7 +76,7 @@ export default class AddNote extends React.Component {
                 this.updateNodeContent(node.children, content);
             }
             //处理根节点是文本的情况
-            else if (node.key === this.state.selectKey) {
+            else if (node.nodeKey === this.state.selectKey) {
                 node.content = content;
             }
         }
@@ -95,7 +99,7 @@ export default class AddNote extends React.Component {
     }
 
     handleChange = (content) => {
-        this.setState({ content })
+        this.setState({ content });
     }
 
     /**
@@ -104,8 +108,17 @@ export default class AddNote extends React.Component {
      * @param content 选中结点的内容 
      */
     handleUpdateEditorContent = (selectKey, content, isLeaf, restParam) => {
-        this.setState({ selectKey, content, disabled: !isLeaf, nodeID: restParam.id })
+        let isVideo = false,
+            savePath = '';
+        if (/\.(mp4|avi|rmvb)/gi.test(restParam.title)) {
+            savePath = `/${restParam.savePath}`;
+            isVideo = true;
+        }
+        this.setState({ selectKey, content, disabled: !isLeaf, nodeID: restParam.id, isVideo, savePath }, () => {
+            if (content) {
         this.editorInstance.setContent(content);
+    }
+        })
     }
 
     /**
@@ -144,7 +157,7 @@ export default class AddNote extends React.Component {
         if (type === 'ADD' || type === 'ADD_FOLDER') {
             info.courseId = QueryString.parse(this.props.location.search).key;
             onAddTreeNode(info).then(data => {
-                Object.assign(info.node, data);
+                Object.assign(info.node, data, { isLeaf: data.leaf });
                 this.setState({ treeData: newTreeData });
                 message.success('已同步到云端');
             })
@@ -178,9 +191,9 @@ export default class AddNote extends React.Component {
         const courseId = QueryString.parse(this.props.location.search).key;
         onAddTreeNode({ ...node, courseId, nodeKey: node.key })
             .then(response => {
-                if (response.isRoot) {
+                if (response.rootNode) {
                     const targetNode = gData.filter(v => v.key === node.key)[0];
-                    targetNode.id = response.id;
+                    Object.assign(targetNode, response);
                     this.renderUpdatedTree(gData);
                 }
             })
@@ -193,7 +206,7 @@ export default class AddNote extends React.Component {
     fetchChildNode = treeNode => {
         const dataRef = treeNode.props.dataRef;
         return onLoadChildData(dataRef.nodeKey).then(response => {
-            dataRef.children = response.length ? response.map(v => ({ ...v })) : [{ nodeKey: `${dataRef.nodeKey}-0`, isLeaf: true }];
+            dataRef.children = response.length ? response.map(v => ({ ...v, isLeaf: v.leaf })) : [{ nodeKey: `${dataRef.nodeKey}-0`, isLeaf: true }];
             this.setState({ treeData: [...this.state.treeData] })
         })
     }
@@ -242,6 +255,14 @@ export default class AddNote extends React.Component {
                         </Card>
                     </Col>
                     <Col span={17} >
+                        {
+                            this.state.isVideo ? (
+                                <Player
+                                    playsInline
+                                    position="center"
+                                    src={this.state.savePath}
+                                />
+                            ) : (
                         <Card>
                             <BraftEditor
                                 ref={instance => this.editorInstance = instance}
@@ -249,6 +270,8 @@ export default class AddNote extends React.Component {
                                 {...editorProps}
                             />
                         </Card>
+                                )
+                        }
                     </Col>
                 </Row>
 
