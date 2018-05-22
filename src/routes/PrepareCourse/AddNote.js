@@ -1,12 +1,12 @@
 import React from 'react';
 import { Row, Col, Card, Button, Upload, Modal, Icon, message } from 'antd';
 import BraftEditor from 'braft-editor'
-import 'braft-editor/dist/braft.css';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { editorConfig } from '../../common/editor-config';
 import ButtonGroup from 'antd/lib/button/button-group';
 import QueryString from '../../utils/query-string';
 import { COURSE_RESOURCE_PROPS_CONFIG } from '../../common/upload.config';
+import { Player } from 'video-react';
 import {
     uploadCourseResource,
     onAddTreeNode,
@@ -19,19 +19,24 @@ import {
 import { withRouter } from 'react-router-dom';
 import TreeContainer from '../../components/Tree/TreeContainer'
 
+import './AddNote.scss';
+import 'braft-editor/dist/braft.css';
+
 const Dragger = Upload.Dragger;
 
 @withRouter
 export default class AddNote extends React.Component {
 
-    state = {
-        selectKey: '',
-        content: '',
-        treeData: [],
-        visible: false,
-        confirmLoading: false,
-        fileList: [],
-        disabled: true,
+    constructor(props) {
+        super(props);
+        this.state = {
+            selectKey: '',
+            content: '',
+            treeData: [],
+            visible: false,
+            confirmLoading: false,
+            fileList: [],
+            disabled: true,
             nodeID: null,
             uploadData: null,
             isVideo: false,
@@ -47,9 +52,14 @@ export default class AddNote extends React.Component {
      * 获取第一层root node
      */
     fetchRootNode = () => {
-        let that = this;
         onLoadTree().then(response => {
-            that.setState({ treeData: response })
+            this.setState({
+                treeData: response.map(v => ({
+                    ...v,
+                    isLeaf: v.leaf,
+                    children: []
+                }))
+            })
         })
     }
 
@@ -116,8 +126,8 @@ export default class AddNote extends React.Component {
         }
         this.setState({ selectKey, content, disabled: !isLeaf, nodeID: restParam.id, isVideo, savePath }, () => {
             if (content) {
-        this.editorInstance.setContent(content);
-    }
+                this.editorInstance.setContent(content);
+            }
         })
     }
 
@@ -125,8 +135,15 @@ export default class AddNote extends React.Component {
      * 保存富文本的内容
      */
     handleSave = () => {
-        const { content, nodeID } = this.state;
         this.findNodeToBeUpdated();
+        this.handleSyncContent();
+    }
+
+    /**
+     * 同步内容到云端
+     */
+    handleSyncContent = () => {
+        const { content, nodeID } = this.state;
         updateCourseNodeContent({ content, id: nodeID }).then(response => {
             message.success('内容已保存到云端');
         })
@@ -136,13 +153,21 @@ export default class AddNote extends React.Component {
      * 课程资源上传
      */
     handleUpload = () => {
-        const { fileList } = this.state;
+        const { fileList, uploadData } = this.state;
         const formData = new FormData();
         fileList.forEach(file => {
             formData.append('file', file)
         });
+        Object.keys(uploadData).forEach(key => {
+            formData.append([key], uploadData[key]);
+        })
         this.setState({ confirmLoading: true }, () => {
-            uploadCourseResource(formData).then(res => this.setState({ confirmLoading: false }))
+            uploadCourseResource(formData).then(res => {
+                message.success('资源上传成功!');
+                this.setState({ confirmLoading: false, visible: false }, () => {
+                    this.fetchRootNode();
+                });
+            })
         })
 
     }
@@ -227,14 +252,18 @@ export default class AddNote extends React.Component {
         const action = (
             <React.Fragment>
                 <ButtonGroup>
-                    <Button>保存</Button>
+                    <Button onClick={() => this.handleSyncContent()}>保存</Button>
                     <Button type="primary" >发布</Button>
                 </ButtonGroup>
             </React.Fragment>
-        )
+        );
 
         return (
-            <PageHeaderLayout title={title} breadcrumbList={this.renderBreadCrumbList()} action={action} >
+            <PageHeaderLayout
+                title={title}
+                breadcrumbList={this.renderBreadCrumbList()}
+                action={action}
+            >
                 <Row gutter={24} >
                     <Col span={5} >
                         <Card
@@ -244,9 +273,9 @@ export default class AddNote extends React.Component {
                         >
                             <TreeContainer
                                 loadData={this.fetchChildNode}
-                                onUpdateNodeName={data => this.updateNodeName(data)}
+                                onUpdateNodeName={(data, type, info) => this.updateNodeName(info)}
                                 onAddNodeToServer={(node, gData) => this.onAddNodeToServer(node, gData)}
-                                onUpload={() => this.setState({ visible: true })}
+                                onUpload={(uploadData) => this.setState({ visible: true, uploadData })}
                                 updateTree={(treeData, type, info) => this.renderUpdatedTree(treeData, type, info)}
                                 dataSource={this.state.treeData}
                                 onSelected={(selectKey, content, isLeaf, restParam) => this.handleUpdateEditorContent(selectKey, content, isLeaf, restParam)}
@@ -263,13 +292,13 @@ export default class AddNote extends React.Component {
                                     src={this.state.savePath}
                                 />
                             ) : (
-                        <Card>
-                            <BraftEditor
-                                ref={instance => this.editorInstance = instance}
-                                disabled={this.state.disabled}
-                                {...editorProps}
-                            />
-                        </Card>
+                                    <Card>
+                                        <BraftEditor
+                                            ref={instance => this.editorInstance = instance}
+                                            disabled={this.state.disabled}
+                                            {...editorProps}
+                                        />
+                                    </Card>
                                 )
                         }
                     </Col>
@@ -283,7 +312,7 @@ export default class AddNote extends React.Component {
                     confirmLoading={this.state.confirmLoading}
                     onOk={() => this.handleUpload()}
                 >
-                    <Dragger {...COURSE_RESOURCE_PROPS_CONFIG(this)} disabled={this.state.confirmLoading} >
+                    <Dragger {...COURSE_RESOURCE_PROPS_CONFIG(this, 'video')} disabled={this.state.confirmLoading} >
                         <p className="ant-upload-drag-icon">
                             <Icon type="inbox" />
                         </p>
@@ -292,7 +321,7 @@ export default class AddNote extends React.Component {
                     </Dragger>
                 </Modal>
 
-            </PageHeaderLayout>
+            </PageHeaderLayout >
         )
     }
 }
