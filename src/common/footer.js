@@ -4,16 +4,16 @@ import { Icon } from 'antd';
 export const FooterLinks = [{
     key: '帮助',
     title: '帮助',
-    href: '',
+    href: '#',
 }, {
     key: 'github',
     title: <Icon type="github" />,
-    href: 'https://github.com/ant-design/ant-design-pro',
+    href: 'https://github.com/ZhihaoJian/eLearning-teacher',
     blankTarget: true,
 }, {
     key: '条款',
     title: '条款',
-    href: '',
+    href: '#',
     blankTarget: true,
 }];
 
