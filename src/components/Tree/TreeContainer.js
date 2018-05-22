@@ -8,6 +8,7 @@ import FaInfo from 'react-icons/lib/fa/info-circle';
 import FaImage from 'react-icons/lib/fa/image';
 import FaHtml5 from 'react-icons/lib/fa/html5';
 import FaCSS3 from 'react-icons/lib/fa/css3';
+import FaVideoCamera from 'react-icons/lib/fa/video-camera';
 import { Tree, Tooltip } from 'antd';
 import NewTree from './NewTree';
 import './index.scss';
@@ -48,7 +49,7 @@ export default class TreeContainer extends React.Component {
         this.setState({ selectedKeys })
         const content = info.node.props.content;
         const isLeaf = !!info.node.isLeaf();
-        this.props.onSelected(selectedKeys[0], content, isLeaf, { id: info.node.props.id });
+        this.props.onSelected(selectedKeys[0], content, isLeaf, { ...info.node.props.dataRef });
     }
 
     /**
@@ -57,15 +58,27 @@ export default class TreeContainer extends React.Component {
     onComfirmUpdate = () => {
         let { node, fileName, gData } = this.state;
         node.title = fileName;
-        this.setState({ gData });
-        this.props.onUpdateNodeName({ id: node.id, name: fileName });
+        this.setState({ gData }, () => {
+            const { gData } = this.state;
+            this.props.onUpdateNodeName(gData, ADD_FOLDER, { id: node.id, title: fileName });
+        });
     }
 
     /**
      *  上传文件资源
      */
     onUploadResource = () => {
-        this.props.onUpload();
+        const { node } = this.state;
+        const dataRef = node.props.dataRef;
+        const children = dataRef.children;
+        let index = children.length ? children.length : 1;
+        const newNodeKey = `${dataRef.nodeKey}-${Number.parseInt(children[index - 1].nodeKey.slice(-1), 10) + 1}`
+        this.props.onUpload({
+            courseId: node.props.courseId,
+            nodeKey: newNodeKey,
+            parentKey: node.props.nodeKey,
+            leaf: true
+        });
     }
 
     /**
@@ -123,7 +136,7 @@ export default class TreeContainer extends React.Component {
         const currentNodePosition = node.props.pos;
         const eventKey = node.props.eventKey;
         //保存点击结点位置和点击位置
-        this.setState({ selectedKeys: [eventKey], currentNodePosition });
+        this.setState({ selectedKeys: [eventKey], currentNodePosition, node });
         //渲染context menu
         this.renderCm(info, menu);
     }
@@ -135,7 +148,7 @@ export default class TreeContainer extends React.Component {
      * @argument type           操作类型 内定有 ADD|UPDATE|ADD_FOLDER|DEL
      * @argument parentNode     父节点
      */
-    updateTree = (nodeList, type, parentNode) => {
+    updateTree = (nodeList, type, parentNode, selectedKeys) => {
         for (let i = 0; i < nodeList.length; i++) {
             const node = nodeList[i];
             if (node.nodeKey !== this.state.selectedKeys[0]) {
@@ -327,7 +340,10 @@ export default class TreeContainer extends React.Component {
             return <FaInfo />
         } else if (/\.(jpg|png|gif|svg)$/.test(title)) {
             return <FaImage />
-        } else {
+        } else if (/\.(mp4|avi|rmvb)$/.test(title)) {
+            return <FaVideoCamera />
+        }
+        else {
             return <FaFileText />
         }
     }
@@ -347,12 +363,12 @@ export default class TreeContainer extends React.Component {
         if (!gData.length) {
             newLength = 0;
         } else {
-            newLength = Number.parseInt(gData[gData.length - 1].key.slice(-1), 10) + 1;
+            newLength = Number.parseInt(gData[gData.length - 1].nodeKey.slice(-1), 10) + 1;
         }
 
         const newRootNode = {
             key: `0-${newLength}`,
-            isRoot: true
+            rootNode: true
         }
 
         if (type === ADD_ROOT_FILE) {
@@ -390,7 +406,7 @@ export default class TreeContainer extends React.Component {
                 if (item.children) {
                     return (
                         <TreeNode
-                            // icon={this.renderTreeIcon(item)}
+                            icon={this.renderTreeIcon(item)}
                             // isLeaf={!!item.isLeaf}
                             key={item.nodeKey}
                             dataRef={item}
@@ -400,7 +416,7 @@ export default class TreeContainer extends React.Component {
                         </TreeNode>);
                 }
                 return <TreeNode
-                    // icon={this.renderTreeIcon(item)}
+                    icon={this.renderTreeIcon(item)}
                     // isLeaf={!!item.isLeaf}
                     key={item.nodeKey}
                     dataRef={item}

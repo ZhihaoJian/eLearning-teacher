@@ -31,7 +31,7 @@ export default class NewTree extends React.Component {
                                 <Tree
                                     loadData={this.props.loadData}
                                     draggable
-                                    // showIcon
+                                    showIcon
                                     defaultSelectedKeys={this.props.selectedKeys}
                                     onSelect={this.props.onSelect}
                                     onRightClick={this.props.onRightClick}
