@@ -1,5 +1,5 @@
 function uploadFn(param) {
-    const serverURL = 'http://upload-server'
+    const serverURL = '/teacher/addImage'
     const xhr = new XMLHttpRequest();
     const fd = new FormData()
 
@@ -10,16 +10,7 @@ function uploadFn(param) {
         // 假设服务端直接返回文件上传后的地址
         // 上传成功后调用param.success并传入上传后的文件地址
         param.success({
-            url: xhr.responseText,
-            meta: {
-                id: 'xxx',
-                title: 'xxx',
-                alt: 'xxx',
-                loop: true, // 指定音视频是否循环播放
-                autoPlay: true, // 指定音视频是否自动播放
-                controls: true, // 指定音视频是否显示控制栏
-                poster: 'http://xxx/xx.png', // 指定视频播放器的封面
-            }
+            url: `/${JSON.parse(xhr.responseText).result}`,
         })
     }
 
@@ -56,8 +47,8 @@ export function editorConfig(handleChange, handleSave) {
             uploadFn: uploadFn,
             allowPasteImage: true, // 是否允许直接粘贴剪贴板图片（例如QQ截图等）到编辑器
             image: true, // 开启图片插入功能
-            video: true, // 开启视频插入功能
-            audio: true, // 开启音频插入功能
+            video: false, // 开启视频插入功能
+            audio: false, // 开启音频插入功能
             validateFn: null, // 指定本地校验函数，说明见下文
             removeConfirmFn: null, // 指定删除前的确认函数，说明见下文
             onRemove: null, // 指定媒体库文件被删除时的回调，参数为被删除的媒体文件列表(数组)
