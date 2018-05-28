@@ -32,7 +32,9 @@ export default class TreeContainer extends React.Component {
             selectedKeys: [],
             currentNodePosition: '',
             node: null,
-            fileName: ''
+            fileName: '',
+            typeArr: [UPDATE, ADD, DEL, ADD_FOLDER, ADD_ROOT_FILE, ADD_ROOT_FOLDER, ADD_VIDEO_RESOURCE],
+            type: ''
         }
     }
 
@@ -46,10 +48,11 @@ export default class TreeContainer extends React.Component {
      * @param info  选中结点的信息
      */
     onSelect = (selectedKeys, info) => {
-        this.setState({ selectedKeys })
-        const content = info.node.props.content;
-        const isLeaf = !!info.node.isLeaf();
-        this.props.onSelected(selectedKeys[0], content, isLeaf, { ...info.node.props.dataRef });
+        this.setState({ selectedKeys }, () => {
+            const content = info.node.props.content;
+            const isLeaf = !!info.node.isLeaf();
+            this.props.onSelected(selectedKeys[0], content, isLeaf, { ...info.node.props.dataRef });
+        })
     }
 
     /**
@@ -57,11 +60,9 @@ export default class TreeContainer extends React.Component {
      */
     onComfirmUpdate = () => {
         let { node, fileName, gData } = this.state;
-        node.title = fileName;
-        this.setState({ gData }, () => {
-            const { gData } = this.state;
-            this.props.onUpdateNodeName(gData, ADD_FOLDER, { id: node.id, title: fileName });
-        });
+        node.dataRef ? node.dataRef.title = fileName : node.title = fileName;
+        // node.title = fileName;
+        this.props.onUpdateNodeName(gData, { node, fileName });
     }
 
     /**
@@ -69,14 +70,15 @@ export default class TreeContainer extends React.Component {
      */
     onUploadResource = () => {
         const { node } = this.state;
-        const dataRef = node.props.dataRef;
-        const children = dataRef.children;
+        const newDataRef = node.props ? node.props.dataRef : node.dataRef;
+        const children = newDataRef.children;
         let index = children.length ? children.length : 1;
-        const newNodeKey = `${dataRef.nodeKey}-${Number.parseInt(children[index - 1].nodeKey.slice(-1), 10) + 1}`
+        const newNodeKey = `${newDataRef.nodeKey}-${Number.parseInt(children[index - 1].nodeKey.slice(-1), 10) + 1}`
         this.props.onUpload({
-            courseId: node.props.courseId,
+            courseId: newDataRef.courseId,
             nodeKey: newNodeKey,
-            parentKey: node.props.nodeKey,
+            node,
+            parentKey: newDataRef.nodeKey,
             leaf: true
         });
     }
@@ -130,13 +132,15 @@ export default class TreeContainer extends React.Component {
      * 鼠标右击
      */
     onRightClick = (info) => {
-        const node = info.node;
+        const nodeDataRef = info.node.props;
+        const treeNode = info.node;
         //生成tooltip
-        let menu = this.generateMenuTooltip(node);
-        const currentNodePosition = node.props.pos;
-        const eventKey = node.props.eventKey;
+
+        let menu = this.generateMenuTooltip(treeNode);
+        const currentNodePosition = nodeDataRef.pos;
+        const eventKey = nodeDataRef.eventKey;
         //保存点击结点位置和点击位置
-        this.setState({ selectedKeys: [eventKey], currentNodePosition, node });
+        this.setState({ selectedKeys: [eventKey], currentNodePosition, node: nodeDataRef });
         //渲染context menu
         this.renderCm(info, menu);
     }
@@ -151,15 +155,16 @@ export default class TreeContainer extends React.Component {
     updateTree = (nodeList, type, parentNode, selectedKeys) => {
         for (let i = 0; i < nodeList.length; i++) {
             const node = nodeList[i];
-            if (node.nodeKey !== this.state.selectedKeys[0]) {
+            if (node.nodeKey !== selectedKeys) {
                 if (node.children) {
-                    return this.updateTree(node.children, type, node)
+                    return this.updateTree(node.children, type, node, selectedKeys)
                 }
             } else {
                 if (type === ADD) {
                     const children = node.children;
-                    const newLength = Number.parseInt(children[children.length - 1].nodeKey.slice(-1), 10) + 1;
-                    const key = `${node.nodeKey}-${newLength}`
+                    //找nodeKey的最大值，并设置新的最大值给新建文件夹                    
+                    const maxlength = Math.max(...node.children.map(v => v.nodeKey).map(v => v.slice(node.nodeKey.length + 1)).map(v => Number.parseInt(v, 10))) + 1;
+                    const key = `${node.nodeKey}-${maxlength}`
                     const file = { key, content: '' };
                     children.push(file);
                     return {
@@ -171,28 +176,35 @@ export default class TreeContainer extends React.Component {
                         title: '新建文本'
                     }
                 } else if (type === UPDATE) {
-                    this.setState({ node })
+                    this.setState({ node });
+                    return {
+                        nodeKey: node.nodeKey,
+                        id: node.id,
+                        title: node.title
+                    }
                 } else if (type === ADD_FOLDER) {
+                    //找nodeKey的最大值，并设置新的最大值给新建文件夹
+                    const maxlength = Math.max(...node.children.map(v => v.nodeKey).map(v => v.slice(node.nodeKey.length + 1)).map(v => Number.parseInt(v, 10))) + 1;
                     const folder = {
-                        key: `${node.nodeKey}-${node.children.length}`,
+                        key: `${node.nodeKey}-${maxlength}`,
                         title: '新建文件夹',
                         isLeaf: false,
                         children: [{
-                            key: `${node.nodeKey}-${node.children.length}-0`,
+                            key: `${node.nodeKey}-${maxlength}-0`,
                             isLeaf: true
                         }]
                     };
                     node.children.push(folder);
                     return {
-                        nodeKey: `${node.nodeKey}-${node.children.length}`,
+                        nodeKey: folder.key,
                         parentKey: node.nodeKey,
                         node: folder,
                         title: '新建文件夹',
                         isLeaf: false,
                     }
                 } else if (type === DEL) {
-                    const { gData } = this.state;
-                    const index = gData.findIndex(v => v.key === node.nodeKey);
+                    const gData = nodeList;
+                    const index = gData.findIndex(v => v.nodeKey === node.nodeKey);
                     //处理删除根节点问题和删除非根结点问题
                     if (!parentNode) {
                         gData.splice(index, 1);
@@ -200,7 +212,7 @@ export default class TreeContainer extends React.Component {
                         parentNode.children.splice(index, 1);
                     }
                     return {
-                        nodeKey: node.id,
+                        node
                     }
                 }
             }
@@ -211,68 +223,25 @@ export default class TreeContainer extends React.Component {
      * 点击context menu
      */
     onContextMenuClick = (e) => {
-        const { selectedKeys } = this.state;
+        e.stopPropagation();
+        const { selectedKeys, typeArr } = this.state;
         const target = e.target;
         const node = target.nodeName === 'SPAN' ? target.parentElement : target;
         const type = node.className;
 
-        //根据nodePost前三位获取入口结点
-        //再根据nodePost剩余的位数判断索引位置
-        const rootKey = selectedKeys[0].slice(0, 3);
-        // const data = this.state.gData;
-        const data = this.props.dataSource;
-        const rootNode = data.filter(v => v.nodeKey === rootKey);
+        if (typeArr.indexOf(type) !== -1) {
+            //确定入口对象的nodeKey
+            const rootKey = selectedKeys[0].split('-').slice(0, 2).join('-');
+            const data = this.props.dataSource;
+            const rootNode = data.filter(v => v.nodeKey === rootKey);
 
-        const info = this.updateTree(rootNode, type);
-        this.setState({ gData: data })
-        this.props.updateTree(data, type, info);
-    }
-
-    /**
-     * 拖放事件
-     */
-    onDrop = (info) => {
-        const dropKey = info.node.props.eventKey;
-        const dragKey = info.dragNode.props.eventKey;
-        const dropPos = info.node.props.pos.split('-');
-        const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
-        const loop = (data, key, callback) => {
-            data.forEach((item, index, arr) => {
-                if (item.key === key) {
-                    return callback(item, index, arr);
-                }
-                if (item.children) {
-                    return loop(item.children, key, callback);
-                }
-            });
-        };
-        const data = [...this.state.gData];
-        let dragObj;
-        loop(data, dragKey, (item, index, arr) => {
-            arr.splice(index, 1);
-            dragObj = item;
-        });
-        if (info.dropToGap) {
-            let ar;
-            let i;
-            loop(data, dropKey, (item, index, arr) => {
-                ar = arr;
-                i = index;
-            });
-            if (dropPosition === -1) {
-                ar.splice(i, 0, dragObj);
-            } else {
-                ar.splice(i + 1, 0, dragObj);
-            }
-        } else {
-            loop(data, dropKey, (item) => {
-                item.children = item.children || [];
-                item.children.push(dragObj);
-            });
+            const info = this.updateTree(rootNode, type, undefined, selectedKeys[0]);
+            this.setState({ gData: data }, () => {
+                const { gData } = this.state;
+                this.props.updateTree(gData, type, info);
+            })
         }
-        this.setState({
-            gData: data,
-        });
+
     }
 
     componentDidMount() {
@@ -305,7 +274,7 @@ export default class TreeContainer extends React.Component {
                 trigger='click'
                 defaultVisible
                 overlay={(
-                    <div className='context-menu' onClick={this.onContextMenuClick} >{menu}</div>
+                    <div className='context-menu' onClick={(e) => this.onContextMenuClick(e)} >{menu}</div>
                 )}
             >
             </Tooltip>
@@ -328,7 +297,7 @@ export default class TreeContainer extends React.Component {
      */
     renderTreeIcon = (item) => {
         const title = item.title;
-        if (item.children) {
+        if (!item.isLeaf) {
             return <FaFolder />
         } else if (/\.(js|jsx|java|c|cpp|py)$/.test(title)) {
             return <FaFileCode />
@@ -353,8 +322,7 @@ export default class TreeContainer extends React.Component {
      */
     addRootNode = (e) => {
         e.stopPropagation();
-        const node = e.target;
-        let target = node.nodeName !== 'A' ? node.closest('a') : node;
+        const target = e.currentTarget;
         const type = target.dataset['type'];
         let { gData } = this.state;
 
@@ -363,7 +331,12 @@ export default class TreeContainer extends React.Component {
         if (!gData.length) {
             newLength = 0;
         } else {
-            newLength = Number.parseInt(gData[gData.length - 1].nodeKey.slice(-1), 10) + 1;
+            try {
+                newLength = Number.parseInt(gData[gData.length - 1].nodeKey.slice(-1), 10) + 1;
+            } catch (error) {
+                console.log(gData);
+                console.log(gData.length);
+            }
         }
 
         const newRootNode = {
@@ -372,29 +345,16 @@ export default class TreeContainer extends React.Component {
         }
 
         if (type === ADD_ROOT_FILE) {
-            Object.assign(newRootNode, { title: '新建文本' })
-            gData.push(newRootNode);
-            // gData.push({
-            //     key: `0-${newLength}`,
-            //     title: '新建文本',
-            //     isRoot: true
-            // })
+            Object.assign(newRootNode, { title: '新建文本', leaf: true })
         } else if (type === ADD_ROOT_FOLDER) {
             Object.assign(newRootNode, {
-                title: '新建文件夹', children: [{
+                title: '新建文件夹',
+                children: [{
                     key: `0-${newLength}-0`
                 }]
             })
-            gData.push(newRootNode);
-            // gData.push({
-            //     key: `0-${newLength}`,
-            //     isRoot: true,
-            //     title: '新建文件夹',
-            //     children: [{
-            //         key: `0-${newLength}-0`
-            //     }]
-            // })
         }
+        gData.push(newRootNode);
         this.setState({ gData })
         this.props.updateTree(gData);
         this.props.onAddNodeToServer(newRootNode, gData);
@@ -407,7 +367,6 @@ export default class TreeContainer extends React.Component {
                     return (
                         <TreeNode
                             icon={this.renderTreeIcon(item)}
-                            // isLeaf={!!item.isLeaf}
                             key={item.nodeKey}
                             dataRef={item}
                             {...item}
@@ -417,10 +376,10 @@ export default class TreeContainer extends React.Component {
                 }
                 return <TreeNode
                     icon={this.renderTreeIcon(item)}
-                    // isLeaf={!!item.isLeaf}
                     key={item.nodeKey}
                     dataRef={item}
-                    {...item} />;
+                    {...item}
+                />;
             });
         };
         return (
@@ -428,8 +387,7 @@ export default class TreeContainer extends React.Component {
                 loadData={this.props.loadData}
                 renderTreeIcon={this.renderTreeIcon}
                 addRootNode={this.addRootNode}
-                gData={this.state.gData}
-                onDrop={this.onDrop}
+                gData={this.props.dataSource}
                 onRightClick={this.onRightClick}
                 onSelect={this.onSelect}
                 selectedKeys={this.state.selectedKeys}

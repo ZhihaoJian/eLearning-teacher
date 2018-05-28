@@ -166,7 +166,7 @@ export default class EditExamArea extends React.Component {
                     onCancel={({ addExamVisible, type }) => {
                         this.setState({ addExamVisible, type })
                     }}
-                    updateExamQuestion={type => this.props.updateExamQuestion({ type })}
+                        updateExamQuestion={type => this.props.updateExamQuestion({ type })}
                 />
                 <EditModal
                     type={this.state.type}

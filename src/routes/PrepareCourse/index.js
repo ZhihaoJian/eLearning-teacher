@@ -22,8 +22,9 @@ export default class PrepareCourse extends React.Component {
     }
 
     fetchData = (pageSize = 10, current = 0) => {
+        this.setState({ loading: true })
         loadCourseList(pageSize, current).then(res => {
-            this.setState({ courseList: res.content })
+            this.setState({ courseList: res.content, loading: false })
         })
     }
 
@@ -37,9 +38,11 @@ export default class PrepareCourse extends React.Component {
             confirmLoading: true
         }, () => {
             addCourseInfo(data).then(id => {
-                message.success('正在为您准备备课区, 请耐心等待!');
-                this.setState({ visible, confirmLoading: false })
-                this.props.history.push(`/prepare-course/add?id=${id}`);
+                if (id) {
+                    message.success('正在为您准备备课区, 请耐心等待!');
+                    this.props.history.push(`/prepare-course/add?key=${id}`);
+                }
+                this.setState({ visible, confirmLoading: false });
             })
         })
     }
@@ -74,7 +77,7 @@ export default class PrepareCourse extends React.Component {
                 >
                     <List
                         className="prepare-course-list"
-                        loading={this.props.loading}
+                        loading={this.state.loading}
                         size='large'
                         itemLayout="horizontal"
                         pagination={{ pageSize: 5 }}
@@ -84,7 +87,7 @@ export default class PrepareCourse extends React.Component {
                             <List.Item
                                 actions={
                                     [
-                                        <Link to={`/prepare-course/edit?id=${item.id}&name=${encodeURIComponent(item.name)}`}>编辑</Link>,
+                                        <Link to={`/prepare-course/edit?type=edit&key=${item.id}&name=${encodeURIComponent(item.name)}`}>编辑</Link>,
                                         <Popconfirm
                                             title='确认要删除改备课信息?'
                                             onConfirm={() => this.onDeleteCourse(item.id)}
@@ -96,7 +99,7 @@ export default class PrepareCourse extends React.Component {
                                 }
                             >
                                 <List.Item.Meta
-                                    title={<Link to={`/prepare-course/edit?id=${item.id}`}>{item.name}</Link>}
+                                    title={<Link to={`/prepare-course/edit?key=${item.id}`}>{item.name}</Link>}
                                     description={(
                                         <React.Fragment>
                                             <div style={{ padding: '12px 0' }} >

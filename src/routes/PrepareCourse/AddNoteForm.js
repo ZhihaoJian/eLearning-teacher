@@ -68,13 +68,13 @@ class AddNoteForm extends React.Component {
                             <TextArea />
                         )}
                     </FormItem>
-                    <FormItem label='课程分类' >
+                    {/* <FormItem label='课程分类' >
                         {getFieldDecorator('type', {
                             rules: [{ required: false }]
                         })(
                             <Input />
                         )}
-                    </FormItem>
+                    </FormItem> */}
                     <FormItem label='封面' >
                         {getFieldDecorator('coverURL', {
                             rules: [{ required: false }]
@@ -83,14 +83,14 @@ class AddNoteForm extends React.Component {
                                 <Button><Icon type='upload' />上传封面</Button></Upload>
                         )}
                     </FormItem>
-                    <FormItem label='学习人数' >
+                    {/* <FormItem label='学习人数' >
                         {getFieldDecorator('learningNumber', {
                             rules: [{ required: false }],
                             initialValue: 0
                         })(
                             <InputNumber min={0} style={{ width: '100%' }} />
                         )}
-                    </FormItem>
+                    </FormItem> */}
                 </Form>
             </Modal>
         )

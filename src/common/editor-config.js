@@ -47,8 +47,8 @@ export function editorConfig(handleChange, handleSave) {
             uploadFn: uploadFn,
             allowPasteImage: true, // 是否允许直接粘贴剪贴板图片（例如QQ截图等）到编辑器
             image: true, // 开启图片插入功能
-            video: false, // 开启视频插入功能
-            audio: false, // 开启音频插入功能
+            video: true, // 开启视频插入功能
+            audio: true, // 开启音频插入功能
             validateFn: null, // 指定本地校验函数，说明见下文
             removeConfirmFn: null, // 指定删除前的确认函数，说明见下文
             onRemove: null, // 指定媒体库文件被删除时的回调，参数为被删除的媒体文件列表(数组)

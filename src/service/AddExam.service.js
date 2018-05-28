@@ -48,10 +48,10 @@ export const onAddTreeNode = (data) => {
 /**
  * 加载tree的root节点
  */
-export const onLoadTree = () => {
+export const onLoadTree = (courseId) => {
     return request({
         method: 'post',
-        url: `/courseNode/findCourseNodeByIsRoot/${true}`,
+        url: `/courseNode/findCourseNodeByIsRoot/${true}/${courseId}`,
     });
 }
 
@@ -59,10 +59,10 @@ export const onLoadTree = () => {
  * 展开tree node 加载 child node
  * @param {string} key 展开结点的 key
  */
-export const onLoadChildData = (key) => {
+export const onLoadChildData = (key, courseId) => {
     return request({
         method: 'post',
-        url: `/courseNode/findCourseNode/${key}`
+        url: `/courseNode/findCourseNode/${key}/${courseId}`
     })
 }
 

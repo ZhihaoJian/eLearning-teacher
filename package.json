@@ -153,6 +153,10 @@
     "/coursevideo": {
       "target": "http://192.168.88.2:9090",
       "changeOrigin": true
+    },
+    "coursetext": {
+      "target": "http://192.168.88.2:9090",
+      "changeOrigin": true
     }
   }
 }
