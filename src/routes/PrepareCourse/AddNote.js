@@ -6,7 +6,6 @@ import { editorConfig } from '../../common/editor-config';
 import ButtonGroup from 'antd/lib/button/button-group';
 import QueryString from '../../utils/query-string';
 import { COURSE_RESOURCE_PROPS_CONFIG } from '../../common/upload.config';
-// import { uploadCourseResource } from '../../service/AddExam.service';
 import { Player } from 'video-react';
 import { withRouter } from 'react-router-dom';
 import {
@@ -24,7 +23,8 @@ import {
     reset
 } from '../../redux/FolderTree.redux';
 import { connect } from 'react-redux';
-import TreeContainer from '../../components/Tree/TreeContainer'
+// import TreeContainer from '../../components/Tree/TreeContainer'
+import TreeContainer from '../../components/Tree/TreeContainer_V2'
 
 import './AddNote.scss';
 import 'braft-editor/dist/braft.css';
@@ -78,7 +78,7 @@ export default class AddNote extends React.Component {
      * @param node 当前节点
      * @param content 更新内容
      */
-    updateNodeContent = (nodeList, parnetNode, content) => {
+    updateNodeContent = (nodeList, parentNode, content) => {
         for (let i = 0; i < nodeList.length; i++) {
             const node = nodeList[i];
             if (node.nodeKey !== this.props.selectKey) {
@@ -89,7 +89,7 @@ export default class AddNote extends React.Component {
                 node.content = content;
                 return {
                     node,
-                    parnetNode
+                    parentNode
                 };
             }
         }
@@ -119,23 +119,22 @@ export default class AddNote extends React.Component {
      * @param selectkey 选中结点的key值
      * @param content 选中结点的内容 
      */
-    handleUpdateEditorContent = (selectKey, content, isLeaf, restParam) => {
+    handleUpdateEditorContent = ({ selectKey, content, isLeaf, restParam }) => {
         let isVideo = false,
             savePath = '';
         if (/\.(mp4|avi|rmvb)$/.test(restParam.savePath)) {
             savePath = `/${restParam.savePath}`;
             isVideo = true;
         } else if (/\.txt$/.test(restParam.savePath)) {
-            this.props.loadFileContent(restParam.id)
+            this.props
+                .loadFileContent(restParam.id)
                 .then(content => this.editorInstance.setContent(content))
         } else {
             this.editorInstance && this.editorInstance.setContent(content);
         }
         this.props.updateStates({
             selectKey,
-            // content,
             disabled: !isLeaf,
-            // nodeID: restParam.id,
             isVideo,
             savePath
         })
@@ -152,7 +151,7 @@ export default class AddNote extends React.Component {
     /**
      * 同步内容到云端
      */
-    handleSyncContent = ({ node, parnetNode }) => {
+    handleSyncContent = ({ node, parentNode }) => {
         const { content } = this.props;
         this.props.saveEditorContent({ content, id: node.id })
             .then(res => {
@@ -177,8 +176,8 @@ export default class AddNote extends React.Component {
         this.props.updateCourseVideo(formData)
             .then(() => {
                 this.setState({ confirmLoading: false, visible: false })
-                const node = uploadData.node.dataRef;
-                const dataRef = node ? node : node.dataRef;
+                const dataRef = uploadData.dataRef;
+                // const dataRef = node ? node : node.dataRef;
                 this.props.onLoadChildData({
                     node: dataRef,
                     courseId: this.state.courseId,
@@ -273,17 +272,17 @@ export default class AddNote extends React.Component {
      * 更新结点名称
      * @param {Object} data 更新节点信息，同步到远程服务器
      */
-    updateNodeName = (gData, info) => {
-        const { node, fileName } = info;
-        const param = { id: node.id || node.props.id, title: fileName }
-        this.props.updateNodeName(param)
+    updateNodeName = (info) => {
+        const { dataRef, fileName } = { ...info };
+        this.props.updateNodeName({ id: dataRef.id, title: fileName })
             .then(() => {
-                let newNode = info.node.dataRef ? info.node.dataRef : info.node;
-                let parentKey = newNode.rootNode ? newNode.nodeKey : newNode.parentKey;
-                this.props.onLoadChildData({
-                    node: newNode,
-                    courseId: this.state.courseId,
-                    parentKey: parentKey
+                const { dataRef, parentNode } = { ...info },
+                    parentKey = dataRef.rootNode ? dataRef.nodeKey : dataRef.parentKey,
+                    courseId = this.state.courseId;
+                dataRef.rootNode ? this.props.loadTreeRoot(courseId) : this.props.onLoadChildData({
+                    node: parentNode,
+                    courseId,
+                    parentKey
                 })
             })
     }
@@ -321,12 +320,12 @@ export default class AddNote extends React.Component {
                         >
                             <TreeContainer
                                 loadData={this.fetchChildNode}
-                                onUpdateNodeName={(gData, info) => this.updateNodeName(gData, info)}
+                                onUpdateNodeName={info => this.updateNodeName(info)}
                                 onAddNodeToServer={(node, gData) => this.onAddNodeToServer(node, gData)}
                                 onUpload={(uploadData) => this.onUpload(uploadData)}
                                 updateTree={(treeData, type, info) => this.renderUpdatedTree(treeData, type, info)}
                                 dataSource={this.props.treeData}
-                                onSelected={(selectKey, content, isLeaf, restParam) => this.handleUpdateEditorContent(selectKey, content, isLeaf, restParam)}
+                                onSelected={selectedInfo => this.handleUpdateEditorContent({ ...selectedInfo })}
                             />
 
                         </Card>

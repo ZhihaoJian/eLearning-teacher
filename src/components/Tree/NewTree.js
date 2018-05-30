@@ -32,7 +32,7 @@ export default class NewTree extends React.Component {
                                     loadData={this.props.loadData}
                                     draggable
                                     showIcon
-                                    defaultSelectedKeys={this.props.selectedKeys}
+                                    // defaultSelectedKeys={this.props.selectedKeys}
                                     onSelect={this.props.onSelect}
                                     onRightClick={this.props.onRightClick}
                                 >

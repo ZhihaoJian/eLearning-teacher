@@ -43,16 +43,61 @@ const updateTreeData = treeData => {
 }
 
 /**
+ * 只更新必要的结点
+ * @param {*} oldTree 当前的tree
+ * @param {*} newRootNodes 后台返回的根节点
+ */
+const updateNessaryNode = (newRootNodes, oldTree = []) => {
+    const oldLength = oldTree.length;
+    const newLength = newRootNodes.length;
+    let nodes = [];
+    if (oldLength < newLength) {
+        newRootNodes.forEach(v => {
+            const index = oldTree.findIndex((o) => o.id === v.id);
+            if (index === -1) {
+                nodes.push(v);
+            }
+        });
+        nodes.forEach(v => oldTree.push(v));
+        return oldTree;
+    }
+    //删
+    else if (oldLength > newLength) {
+        oldTree.forEach(v => {
+            const index = newRootNodes.findIndex((o) => o.id === v.id);
+            if (index === -1) {
+                nodes.push(v);
+            }
+        });
+        nodes.forEach(v => {
+            const index = oldTree.findIndex(el => el.id === v.id);
+            oldTree.splice(index, 1);
+        })
+        return oldTree;
+    }
+    //改
+    else {
+        oldTree.forEach((v, i) => {
+            Object.assign(v, newRootNodes[i]);
+        })
+        return oldTree;
+    }
+}
+
+
+/**
  * 加载根节点
  * @param {String} courseId 课程ID
  */
 export const loadTreeRoot = (courseId) => {
-    return dispatch => {
+    return (dispatch, getState) => {
         Axios.post(`/courseNode/findCourseNodeByIsRoot/${true}/${courseId}`)
             .then(res => {
-                const responseData = res.data;
+                const responseData = res.data.result;
+                const oldData = [...getState().folderTreeReducers.treeData];
                 if (res.status === 200) {
-                    const treeData = responseData.result.map(v => ({ ...v, isLeaf: v.leaf }))
+                    const processedData = responseData.map(v => ({ ...v, isLeaf: v.leaf }));
+                    const treeData = updateNessaryNode(processedData, oldData);
                     dispatch(loadRootNode(treeData));
                 } else {
                     message.error('Oops,稍微出现了一点错误，刷新试试?');
@@ -72,9 +117,10 @@ export const onLoadChildData = ({ node, courseId, parentKey }) => {
             .then(res => {
                 const resData = res.data.result;
                 if (res.status === 200) {
-                    node = node.dataRef ? node.dataRef : node;
                     node.children = resData.length ?
-                        resData.map(v => ({ ...v, isLeaf: v.leaf })) :
+                        resData.map(v => {
+                            return v.leaf ? { ...v, isLeaf: v.leaf } : { ...v, isLeaf: v.leaf, children: [{ nodeKey: `${v.nodeKey}-0`, isLeaf: true, key: `${v.nodeKey}-0` }] };
+                        }) :
                         [{ nodeKey: `${node.nodeKey}-0`, isLeaf: true, key: `${node.nodeKey}-0` }];
                     dispatch(updateTreeData(getState().folderTreeReducers.treeData))
                 } else {
