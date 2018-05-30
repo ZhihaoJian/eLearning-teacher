@@ -7,14 +7,19 @@ import storage from 'redux-persist/lib/storage';
 const persistConfig = {
     key: 'root',
     storage,
-    blacklist: ['addNoteReducers', 'examsReducers']
+    blacklist: ['addNoteReducers', 'examsReducers', 'folderTreeReducers']
 }
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 const reduxDevTools = window.devToolsExtension ? window.devToolsExtension() : () => { };
 
+// export const store = createStore(
+//     persistedReducer,
+//     compose(applyMiddleware(thunkMiddleware), reduxDevTools)
+// );
+
 export const store = createStore(
     persistedReducer,
-    compose(applyMiddleware(thunkMiddleware), reduxDevTools)
+    compose(applyMiddleware(thunkMiddleware))
 );
 
 export const persistor = persistStore(store);

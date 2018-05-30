@@ -19,9 +19,9 @@ export default class NewTree extends React.Component {
                         key={'1'}
                         header={
                             (
-                                <div className='add-node' onClick={this.props.addRootNode} >
-                                    <a data-type={ADD_ROOT_FILE} title='新建文本文件'><FaPlus /></a>
-                                    <a data-type={ADD_ROOT_FOLDER} title='新建文件夹'><FaFolder /></a>
+                                <div className='add-node' >
+                                    <a data-type={ADD_ROOT_FILE} onClick={this.props.addRootNode} title='新建文本文件'><FaPlus /></a>
+                                    <a data-type={ADD_ROOT_FOLDER} onClick={this.props.addRootNode} title='新建文件夹'><FaFolder /></a>
                                 </div>
                             )
                         }
@@ -32,10 +32,9 @@ export default class NewTree extends React.Component {
                                     loadData={this.props.loadData}
                                     draggable
                                     showIcon
-                                    defaultSelectedKeys={this.props.selectedKeys}
+                                    // defaultSelectedKeys={this.props.selectedKeys}
                                     onSelect={this.props.onSelect}
                                     onRightClick={this.props.onRightClick}
-                                    onDrop={this.props.onDrop}
                                 >
                                     {this.props.loop(this.props.gData)}
                                 </Tree>

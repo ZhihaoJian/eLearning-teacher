@@ -27,20 +27,14 @@ export default class TreeContainer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            visible: false,
-            gData: [],
-            selectedKeys: [],
-            currentNodePosition: '',
-            node: null,
-            fileName: '',
             typeArr: [UPDATE, ADD, DEL, ADD_FOLDER, ADD_ROOT_FILE, ADD_ROOT_FOLDER, ADD_VIDEO_RESOURCE],
-            type: ''
+            nodeKey: '',
+            dataRef: null,
+            type: '',
+            fileName: ''
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.setState({ gData: nextProps.dataSource })
-    }
 
     /**
      * 选中结点触发
@@ -51,7 +45,12 @@ export default class TreeContainer extends React.Component {
         this.setState({ selectedKeys }, () => {
             const content = info.node.props.content;
             const isLeaf = !!info.node.isLeaf();
-            this.props.onSelected(selectedKeys[0], content, isLeaf, { ...info.node.props.dataRef });
+            this.props.onSelected({
+                selectKey: selectedKeys[0],
+                content,
+                isLeaf,
+                restParam: { ...info.node.props.dataRef }
+            });
         })
     }
 
@@ -59,26 +58,36 @@ export default class TreeContainer extends React.Component {
      * 更换文件名
      */
     onComfirmUpdate = () => {
-        let { node, fileName, gData } = this.state;
-        node.dataRef ? node.dataRef.title = fileName : node.title = fileName;
-        this.props.onUpdateNodeName(gData, { node, fileName });
+        let { dataRef, fileName, parentNode } = this.state;
+        console.log(parentNode);
+        this.props.onUpdateNodeName({ dataRef, fileName, parentNode });
+    }
+
+    /**
+     * 找节点的最大下标
+     */
+    findMaxLength = (dataSource) => {
+        return dataSource.length ? (Math.max(...dataSource.map((v) => {
+            const nodeKey = v.nodeKey,
+                lastIndex = nodeKey.lastIndexOf('-'),
+                start = Number.parseInt(nodeKey.slice(lastIndex + 1), 10);
+            return start;
+        }, this)) + 1) : 0;
     }
 
     /**
      *  上传文件资源
      */
     onUploadResource = () => {
-        const { node } = this.state;
-        const newDataRef = node.props ? node.props.dataRef : node.dataRef;
-        const children = newDataRef.children;
-        let index = children.length ? children.length : 1;
-        const newNodeKey = `${newDataRef.nodeKey}-${Number.parseInt(children[index - 1].nodeKey.slice(-1), 10) + 1}`
+        const dataRef = this.state.dataRef,
+            newLength = this.findMaxLength(dataRef.children),
+            newNodeKey = `${dataRef.nodeKey}-${newLength}`;
         this.props.onUpload({
-            courseId: newDataRef.courseId,
-            nodeKey: newNodeKey,
-            node,
-            parentKey: newDataRef.nodeKey,
-            leaf: true
+            courseId: dataRef.courseId,
+            parentKey: dataRef.nodeKey,
+            dataRef,
+            leaf: true,
+            nodeKey: newNodeKey
         });
     }
 
@@ -86,44 +95,32 @@ export default class TreeContainer extends React.Component {
      * 根据不同结点生成不同的context menu
      * @param 当前结点
      */
-    generateMenuTooltip = (node) => {
-        let menu;
-        let fileName = node.props.title;
-        this.setState({ fileName })
-        if (node.isLeaf()) {
-            menu = (
-                <React.Fragment>
-                    <Popconfirm
-                        placement='right'
-                        title={<Input defaultValue={fileName} onChange={(e) => this.setState({ fileName: e.target.value })} />}
-                        onConfirm={this.onComfirmUpdate}
-                        okText='确定'
-                        cancelText='取消 '
-                    >
-                        <div className={UPDATE} ><span>修改名称</span></div>
-                    </Popconfirm>
-                    <div className={DEL} ><span>删除</span></div>
-                </React.Fragment>
-            )
-        } else {
-            menu = (
-                <React.Fragment>
-                    <div className={ADD} ><span>新建文件</span></div>
-                    <div className={ADD_FOLDER} ><span>新建文件夹</span></div>
-                    <div className={ADD_VIDEO_RESOURCE} onClick={() => this.onUploadResource()} ><span>上传视频资源</span></div>
-                    <Popconfirm
-                        placement='right'
-                        title={<Input defaultValue={fileName} onChange={(e) => this.setState({ fileName: e.target.value })} />}
-                        onConfirm={this.onComfirmUpdate}
-                        okText='确定'
-                        cancelText='取消 '
-                    >
-                        <div className={UPDATE} ><span>修改名称</span></div>
-                    </Popconfirm>
-                    <div className={DEL} ><span>删除</span></div>
-                </React.Fragment>
-            )
-        }
+    generateMenuTooltip = (dataRef) => {
+        let menu,
+            fileName = dataRef.title;
+        menu = (
+            <React.Fragment>
+                {
+                    dataRef.isLeaf ? null : (
+                        <React.Fragment>
+                            <div className={ADD} ><span>新建文件</span></div>
+                            <div className={ADD_FOLDER} ><span>新建文件夹</span></div>
+                            <div className={ADD_VIDEO_RESOURCE} onClick={() => this.onUploadResource()} ><span>上传视频资源</span></div>
+                        </React.Fragment>
+                    )
+                }
+                <Popconfirm
+                    placement='right'
+                    title={<Input defaultValue={fileName} onChange={(e) => this.setState({ fileName: e.target.value })} />}
+                    onConfirm={this.onComfirmUpdate}
+                    okText='确定'
+                    cancelText='取消 '
+                >
+                    <div className={UPDATE} ><span>修改名称</span></div>
+                </Popconfirm>
+                <div className={DEL} ><span>删除</span></div>
+            </React.Fragment>
+        )
         return menu;
     }
 
@@ -131,23 +128,50 @@ export default class TreeContainer extends React.Component {
      * 鼠标右击
      */
     onRightClick = (info) => {
-        const nodeDataRef = info.node.props;
-        const treeNode = info.node;
-        //生成tooltip
-
-        let menu = this.generateMenuTooltip(treeNode);
-        const currentNodePosition = nodeDataRef.pos;
-        const eventKey = nodeDataRef.eventKey;
-        //保存点击结点位置和点击位置
-        this.setState({ selectedKeys: [eventKey], currentNodePosition, node: nodeDataRef });
-        //渲染context menu
+        const dataRef = info.node.props.dataRef;
+        const nodeKey = dataRef.nodeKey;
+        const parentNode = this.findParentNode(nodeKey)
+        let menu = this.generateMenuTooltip(dataRef);
+        this.setState({ nodeKey, dataRef, parentNode });
         this.renderCm(info, menu);
+    }
+
+    /**
+     * 找父节点
+     * @param {Array} nodeList
+     * @param {Object} parentNode
+     * @param {String} selectedKey
+     */
+    findParentNode = (nodeKey, parentNode) => {
+        const keys = nodeKey.split('-');
+        let dataSource = this.props.dataSource;
+        let pathKeys = [];
+        //拆分Key  --->  ['0','0-1','0-1-5','0-1-5-5']
+        for (let i = 0; i < keys.length; i++) {
+            pathKeys.push(keys.slice(0, i + 1).join('-'));
+        }
+        //因为最后一个元素为右键点击选中的结点
+        //所以它的前一个元素必定为它的父节点
+        for (let index = 1; index < pathKeys.length - 1; index++) {
+            parentNode = dataSource.filter(v => v.nodeKey === pathKeys[index])[0];
+            dataSource = parentNode.children;
+        }
+        return parentNode;
+    }
+
+    /**
+     * 寻找第一层入口对象
+     * @param {String} selectedKey 选中的节点key值
+     */
+    findEntryObject = (selectedKey) => {
+        const rootKey = selectedKey.split('-').slice(0, 2).join('-');
+        return this.props.dataSource.filter(v => v.nodeKey === rootKey);
     }
 
     /**
      * 根据点击context menu不同选项，更新treeData相应节点信息
      * 
-     * @argument nodeList       当前结点列表
+     * @argument nodeList        当前结点列表
      * @argument type           操作类型 内定有 ADD|UPDATE|ADD_FOLDER|DEL
      * @argument parentNode     父节点
      */
@@ -159,60 +183,47 @@ export default class TreeContainer extends React.Component {
                     return this.updateTree(node.children, type, node, selectedKeys)
                 }
             } else {
-                if (type === ADD) {
-                    const children = node.children;
+                if (type === ADD || type === ADD_FOLDER) {
                     //找nodeKey的最大值，并设置新的最大值给新建文件夹                    
-                    const maxlength = Math.max(...node.children.map(v => v.nodeKey).map(v => v.slice(node.nodeKey.length + 1)).map(v => Number.parseInt(v, 10))) + 1;
+                    const children = node.children;
+                    const maxlength = Math.max(
+                        ...node.children
+                            .map(v => v.nodeKey)
+                            .map(v => v.slice(node.nodeKey.length + 1))
+                            .map(v => Number.parseInt(v, 10))) + 1;
                     const key = `${node.nodeKey}-${maxlength}`
                     const file = { key, content: '' };
-                    children.push(file);
+                    const folder = {
+                        key,
+                        title: '新建文件夹',
+                        isLeaf: false,
+                        children: [{
+                            key: `${key}-0`,
+                            isLeaf: true
+                        }]
+                    };
+                    type === ADD ? children.push(file) : children.push(folder);
                     return {
                         nodeKey: key,
-                        node: file,
+                        node: type === ADD ? file : folder,
                         parentKey: node.nodeKey,
                         content: '',
-                        isLeaf: true,
-                        title: '新建文本'
+                        isLeaf: type === ADD ? true : false,
+                        title: type === ADD ? '新建文本' : '新建文件夹'
                     }
                 } else if (type === UPDATE) {
-                    this.setState({ node });
+                    // this.setState({ dataRef: node });
                     return {
                         nodeKey: node.nodeKey,
                         id: node.id,
                         title: node.title
                     }
-                } else if (type === ADD_FOLDER) {
-                    //找nodeKey的最大值，并设置新的最大值给新建文件夹
-                    const maxlength = Math.max(...node.children.map(v => v.nodeKey).map(v => v.slice(node.nodeKey.length + 1)).map(v => Number.parseInt(v, 10))) + 1;
-                    const folder = {
-                        key: `${node.nodeKey}-${maxlength}`,
-                        title: '新建文件夹',
-                        isLeaf: false,
-                        children: [{
-                            key: `${node.nodeKey}-${maxlength}-0`,
-                            isLeaf: true
-                        }]
-                    };
-                    node.children.push(folder);
-                    return {
-                        nodeKey: folder.key,
-                        parentKey: node.nodeKey,
-                        node: folder,
-                        title: '新建文件夹',
-                        isLeaf: false,
-                    }
                 } else if (type === DEL) {
                     const gData = nodeList;
                     const index = gData.findIndex(v => v.nodeKey === node.nodeKey);
                     //处理删除根节点问题和删除非根结点问题
-                    if (!parentNode) {
-                        gData.splice(index, 1);
-                    } else {
-                        parentNode.children.splice(index, 1);
-                    }
-                    return {
-                        node
-                    }
+                    parentNode ? parentNode.children.splice(index, 1) : gData.splice(index, 1)
+                    return { node }
                 }
             }
         }
@@ -223,24 +234,18 @@ export default class TreeContainer extends React.Component {
      */
     onContextMenuClick = (e) => {
         e.stopPropagation();
-        const { selectedKeys, typeArr } = this.state;
+        const { nodeKey, typeArr } = this.state;
+        const dataSource = this.props.dataSource;
         const target = e.target;
         const node = target.nodeName === 'SPAN' ? target.parentElement : target;
         const type = node.className;
 
         if (typeArr.indexOf(type) !== -1) {
             //确定入口对象的nodeKey
-            const rootKey = selectedKeys[0].split('-').slice(0, 2).join('-');
-            const data = this.props.dataSource;
-            const rootNode = data.filter(v => v.nodeKey === rootKey);
-
-            const info = this.updateTree(rootNode, type, undefined, selectedKeys[0]);
-            this.setState({ gData: data }, () => {
-                const { gData } = this.state;
-                this.props.updateTree(gData, type, info);
-            })
+            const rootNode = this.findEntryObject(nodeKey);
+            const selectedInfo = this.updateTree(rootNode, type, undefined, nodeKey);
+            this.props.updateTree(dataSource, type, selectedInfo);
         }
-
     }
 
     componentDidMount() {
@@ -321,27 +326,17 @@ export default class TreeContainer extends React.Component {
      */
     addRootNode = (e) => {
         e.stopPropagation();
-        const target = e.currentTarget;
-        const type = target.dataset['type'];
-        let { gData } = this.state;
-
-        //处理空树添加结点问题
-        let newLength;
-        if (!gData.length) {
-            newLength = 0;
-        } else {
-            try {
-                newLength = Number.parseInt(gData[gData.length - 1].nodeKey.slice(-1), 10) + 1;
-            } catch (error) {
-                console.log(gData);
-                console.log(gData.length);
+        let newLength = 0;
+        const target = e.currentTarget,
+            type = target.dataset['type'],
+            dataSource = this.props.dataSource,
+            newRootNode = {
+                rootNode: true
             }
-        }
 
-        const newRootNode = {
-            key: `0-${newLength}`,
-            rootNode: true
-        }
+        newLength = this.findMaxLength(dataSource);
+
+        newRootNode.key = `0-${newLength}`;
 
         if (type === ADD_ROOT_FILE) {
             Object.assign(newRootNode, { title: '新建文本', leaf: true })
@@ -353,10 +348,9 @@ export default class TreeContainer extends React.Component {
                 }]
             })
         }
-        gData.push(newRootNode);
-        this.setState({ gData })
-        this.props.updateTree(gData);
-        this.props.onAddNodeToServer(newRootNode, gData);
+
+        dataSource.push(newRootNode);
+        this.props.onAddNodeToServer(newRootNode, dataSource);
     }
 
     render() {

@@ -7,17 +7,24 @@ import ButtonGroup from 'antd/lib/button/button-group';
 import QueryString from '../../utils/query-string';
 import { COURSE_RESOURCE_PROPS_CONFIG } from '../../common/upload.config';
 import { Player } from 'video-react';
-import {
-    uploadCourseResource,
-    onAddTreeNode,
-    onLoadTree,
-    onLoadChildData,
-    onDeleteNode,
-    onUpdateNodeName,
-    updateCourseNodeContent
-} from '../../service/AddExam.service';
 import { withRouter } from 'react-router-dom';
-import TreeContainer from '../../components/Tree/TreeContainer'
+import {
+    deleteNode,
+    loadTreeRoot,
+    onLoadChildData,
+    updateNodeName,
+    addTreeNode,
+    updateTree,
+    updateEditorContent,
+    updateStates,
+    saveEditorContent,
+    updateCourseVideo,
+    loadFileContent,
+    reset
+} from '../../redux/FolderTree.redux';
+import { connect } from 'react-redux';
+// import TreeContainer from '../../components/Tree/TreeContainer'
+import TreeContainer from '../../components/Tree/TreeContainer_V2'
 
 import './AddNote.scss';
 import 'braft-editor/dist/braft.css';
@@ -25,42 +32,45 @@ import 'braft-editor/dist/braft.css';
 const Dragger = Upload.Dragger;
 
 @withRouter
+@connect(
+    props => props.folderTreeReducers,
+    {
+        saveEditorContent,
+        loadTreeRoot,
+        onLoadChildData,
+        updateNodeName,
+        addTreeNode,
+        updateTree,
+        deleteNode,
+        updateEditorContent,
+        updateStates,
+        updateCourseVideo,
+        loadFileContent,
+        reset
+    }
+)
 export default class AddNote extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            selectKey: '',
-            content: '',
-            treeData: [],
-            visible: false,
-            confirmLoading: false,
-            fileList: [],
-            disabled: true,
-            nodeID: null,
-            uploadData: null,
-            isVideo: false,
-            savePath: ''
-        };
+    state = {
+        courseId: QueryString.parse(this.props.location.search).key,
+        fileList: [],
+        confirmLoading: false,
     }
 
     componentDidMount() {
         this.fetchRootNode();
     }
 
+    componentWillUnmount() {
+        this.props.reset();
+    }
+
     /**
      * 获取第一层root node
      */
     fetchRootNode = () => {
-        onLoadTree().then(response => {
-            this.setState({
-                treeData: response.map(v => ({
-                    ...v,
-                    isLeaf: v.leaf,
-                    children: []
-                }))
-            })
-        })
+        const courseId = this.state.courseId;
+        this.props.loadTreeRoot(courseId)
     }
 
     /**
@@ -68,26 +78,19 @@ export default class AddNote extends React.Component {
      * @param node 当前节点
      * @param content 更新内容
      */
-    updateNodeContent = (node, content) => {
-        let _this = this;
-        if (node instanceof Array) {
-            node.forEach(item => {
-                if (item.children) {
-                    this.updateNodeContent(item.children, content);
+    updateNodeContent = (nodeList, parentNode, content) => {
+        for (let i = 0; i < nodeList.length; i++) {
+            const node = nodeList[i];
+            if (node.nodeKey !== this.props.selectKey) {
+                if (node.children) {
+                    return this.updateNodeContent(node.children, node, content)
                 }
-                else if (item.nodeKey === _this.state.selectKey) {
-                    item.content = content;
-                    return;
-                }
-            })
-        }
-        else {
-            if (node.children) {
-                this.updateNodeContent(node.children, content);
-            }
-            //处理根节点是文本的情况
-            else if (node.nodeKey === this.state.selectKey) {
+            } else {
                 node.content = content;
+                return {
+                    node,
+                    parentNode
+                };
             }
         }
     }
@@ -98,18 +101,17 @@ export default class AddNote extends React.Component {
      * 查找结点并更新结点内容
      */
     findNodeToBeUpdated = () => {
-        const selectKey = this.state.selectKey;
-        const data = this.state.treeData;
-        const key = selectKey.slice(0, 3);
-        const rootNode = data.filter(node => node.nodeKey === key)[0];
-        this.updateNodeContent(rootNode, this.state.content);
-        const index = this.state.treeData.findIndex(v => v.nodeKey === key);
-        data[index] = rootNode;
-        this.setState({ treeData: data })
+        const selectKey = this.props.selectKey;
+        const data = this.props.treeData;
+        const rootKey = selectKey.split('-').slice(0, 2).join('-');
+        const rootNode = data.filter(node => node.nodeKey === rootKey);
+        const cachedNode = this.updateNodeContent(rootNode, undefined, this.props.content);
+        this.props.updateTree(data);
+        return cachedNode;
     }
 
     handleChange = (content) => {
-        this.setState({ content });
+        this.props.updateEditorContent(content);
     }
 
     /**
@@ -117,17 +119,24 @@ export default class AddNote extends React.Component {
      * @param selectkey 选中结点的key值
      * @param content 选中结点的内容 
      */
-    handleUpdateEditorContent = (selectKey, content, isLeaf, restParam) => {
+    handleUpdateEditorContent = ({ selectKey, content, isLeaf, restParam }) => {
         let isVideo = false,
             savePath = '';
-        if (/\.(mp4|avi|rmvb)/gi.test(restParam.title)) {
+        if (/\.(mp4|avi|rmvb)$/.test(restParam.savePath)) {
             savePath = `/${restParam.savePath}`;
             isVideo = true;
+        } else if (/\.txt$/.test(restParam.savePath)) {
+            this.props
+                .loadFileContent(restParam.id)
+                .then(content => this.editorInstance.setContent(content))
+        } else {
+            this.editorInstance && this.editorInstance.setContent(content);
         }
-        this.setState({ selectKey, content, disabled: !isLeaf, nodeID: restParam.id, isVideo, savePath }, () => {
-            if (content) {
-                this.editorInstance.setContent(content);
-            }
+        this.props.updateStates({
+            selectKey,
+            disabled: !isLeaf,
+            isVideo,
+            savePath
         })
     }
 
@@ -135,25 +144,27 @@ export default class AddNote extends React.Component {
      * 保存富文本的内容
      */
     handleSave = () => {
-        this.findNodeToBeUpdated();
-        this.handleSyncContent();
+        const cachedNode = this.findNodeToBeUpdated();
+        this.handleSyncContent(cachedNode);
     }
 
     /**
      * 同步内容到云端
      */
-    handleSyncContent = () => {
-        const { content, nodeID } = this.state;
-        updateCourseNodeContent({ content, id: nodeID }).then(response => {
-            message.success('内容已保存到云端');
-        })
+    handleSyncContent = ({ node, parentNode }) => {
+        const { content } = this.props;
+        this.props.saveEditorContent({ content, id: node.id })
+            .then(res => {
+                Object.assign(node, { savePath: res.savePath, id: res.id });
+            })
     }
 
     /**
      * 课程资源上传
      */
     handleUpload = () => {
-        const { fileList, uploadData } = this.state;
+        const { uploadData } = this.props;
+        const { fileList } = this.state;
         const formData = new FormData();
         fileList.forEach(file => {
             formData.append('file', file)
@@ -161,14 +172,18 @@ export default class AddNote extends React.Component {
         Object.keys(uploadData).forEach(key => {
             formData.append([key], uploadData[key]);
         })
-        this.setState({ confirmLoading: true }, () => {
-            uploadCourseResource(formData).then(res => {
-                message.success('资源上传成功!');
-                this.setState({ confirmLoading: false, visible: false }, () => {
-                    this.fetchRootNode();
+        this.setState({ confirmLoading: true })
+        this.props.updateCourseVideo(formData)
+            .then(() => {
+                this.setState({ confirmLoading: false, visible: false })
+                const dataRef = uploadData.dataRef;
+                // const dataRef = node ? node : node.dataRef;
+                this.props.onLoadChildData({
+                    node: dataRef,
+                    courseId: this.state.courseId,
+                    parentKey: dataRef.nodeKey
                 });
             })
-        })
 
     }
 
@@ -179,28 +194,44 @@ export default class AddNote extends React.Component {
      * @param {Object} info 可选参数，当指定的时候作为请求参数，需要与 type 联动
      */
     renderUpdatedTree = (newTreeData, type, info) => {
-        if (type === 'ADD' || type === 'ADD_FOLDER') {
-            info.courseId = QueryString.parse(this.props.location.search).key;
-            onAddTreeNode(info).then(data => {
-                Object.assign(info.node, data, { isLeaf: data.leaf });
-                this.setState({ treeData: newTreeData });
-                message.success('已同步到云端');
+        if (type && (type === 'ADD' || type === 'ADD_FOLDER')) {
+            this.props.addTreeNode({ ...info, courseId: this.state.courseId }, (data) => {
+                const node = info.node ? info.node : info;
+                Object.assign(node, data, { isLeaf: data.leaf });
+                this.props.onLoadChildData({
+                    node: info.node,
+                    courseId: this.state.courseId,
+                    parentKey: info.node.parentKey
+                });
+                message.success('已同步到云');
             })
-        } else if (type === 'DEL') {
-            onDeleteNode(info.nodeKey).then(response => {
-                this.setState({ treeData: newTreeData });
-                message.success('已同步到云端');
-            })
+        } else if (type && type === 'DEL') {
+            const { node } = info;
+            this.props.deleteNode(node.id)
+                .then(() => {
+                    if (node.rootNode) {
+                        this.props.loadTreeRoot(node.courseId);
+                    } else {
+                        this.props.onLoadChildData({
+                            node,
+                            courseId: this.state.courseId,
+                            parentKey: node.parentKey
+                        });
+                    }
+                })
         }
-        this.setState({ treeData: newTreeData });
-        this.editorInstance.setContent('');
+        this.props.updateTree(newTreeData, () => {
+            if (this.editorInstance) {
+                this.editorInstance.setContent('');
+            }
+        })
     }
 
     /**
      * 渲染breadCrumbList
      */
     renderBreadCrumbList = () => {
-        const courseName = QueryString.parse(this.props.location.search).name;
+        const courseName = QueryString.parse(this.props.location.search).name || '';
         const breadObj = this.props.breadcrumbList.find(v => v.title === courseName);
         if (!breadObj) {
             this.props.breadcrumbList.push({ title: courseName })
@@ -213,15 +244,14 @@ export default class AddNote extends React.Component {
      * 向服务器发起新增节点,成功后重新渲染tree
      */
     onAddNodeToServer = (node, gData) => {
-        const courseId = QueryString.parse(this.props.location.search).key;
-        onAddTreeNode({ ...node, courseId, nodeKey: node.key })
-            .then(response => {
-                if (response.rootNode) {
-                    const targetNode = gData.filter(v => v.key === node.key)[0];
-                    Object.assign(targetNode, response);
-                    this.renderUpdatedTree(gData);
-                }
-            })
+        const { courseId } = this.state;
+        this.props.addTreeNode({ ...node, courseId, nodeKey: node.key }, (data) => {
+            if (data.rootNode) {
+                const targetNode = gData.filter(v => v.key === node.key)[0];
+                Object.assign(targetNode, data, { isLeaf: data.leaf });
+                this.renderUpdatedTree(gData);
+            }
+        })
     }
 
     /**
@@ -229,21 +259,38 @@ export default class AddNote extends React.Component {
      * @param {Object} treeNode 待加载子节点的父节点
      */
     fetchChildNode = treeNode => {
-        const dataRef = treeNode.props.dataRef;
-        return onLoadChildData(dataRef.nodeKey).then(response => {
-            dataRef.children = response.length ? response.map(v => ({ ...v, isLeaf: v.leaf })) : [{ nodeKey: `${dataRef.nodeKey}-0`, isLeaf: true }];
-            this.setState({ treeData: [...this.state.treeData] })
-        })
+        let dataRef = treeNode.props.dataRef;
+        const { courseId } = this.state;
+        return this.props.onLoadChildData({
+            node: dataRef,
+            courseId,
+            parentKey: dataRef.nodeKey
+        });
     }
 
     /**
      * 更新结点名称
      * @param {Object} data 更新节点信息，同步到远程服务器
      */
-    updateNodeName = (data) => {
-        onUpdateNodeName(data).then(response => {
-            message.success('已同步到云端');
-        })
+    updateNodeName = (info) => {
+        const { dataRef, fileName } = { ...info };
+        this.props.updateNodeName({ id: dataRef.id, title: fileName })
+            .then(() => {
+                const { dataRef, parentNode } = { ...info },
+                    parentKey = dataRef.rootNode ? dataRef.nodeKey : dataRef.parentKey,
+                    courseId = this.state.courseId;
+                dataRef.rootNode ? this.props.loadTreeRoot(courseId) : this.props.onLoadChildData({
+                    node: parentNode,
+                    courseId,
+                    parentKey
+                })
+            })
+    }
+
+    onUpload = (uploadData) => {
+        this.setState({ visible: true }, () => {
+            this.props.updateStates({ uploadData })
+        });
     }
 
     render() {
@@ -273,29 +320,29 @@ export default class AddNote extends React.Component {
                         >
                             <TreeContainer
                                 loadData={this.fetchChildNode}
-                                onUpdateNodeName={(data, type, info) => this.updateNodeName(info)}
+                                onUpdateNodeName={info => this.updateNodeName(info)}
                                 onAddNodeToServer={(node, gData) => this.onAddNodeToServer(node, gData)}
-                                onUpload={(uploadData) => this.setState({ visible: true, uploadData })}
+                                onUpload={(uploadData) => this.onUpload(uploadData)}
                                 updateTree={(treeData, type, info) => this.renderUpdatedTree(treeData, type, info)}
-                                dataSource={this.state.treeData}
-                                onSelected={(selectKey, content, isLeaf, restParam) => this.handleUpdateEditorContent(selectKey, content, isLeaf, restParam)}
+                                dataSource={this.props.treeData}
+                                onSelected={selectedInfo => this.handleUpdateEditorContent({ ...selectedInfo })}
                             />
 
                         </Card>
                     </Col>
                     <Col span={17} >
                         {
-                            this.state.isVideo ? (
+                            this.props.isVideo ? (
                                 <Player
                                     playsInline
                                     position="center"
-                                    src={this.state.savePath}
+                                    src={this.props.savePath}
                                 />
                             ) : (
                                     <Card>
                                         <BraftEditor
                                             ref={instance => this.editorInstance = instance}
-                                            disabled={this.state.disabled}
+                                            disabled={this.props.disabled}
                                             {...editorProps}
                                         />
                                     </Card>
@@ -309,6 +356,7 @@ export default class AddNote extends React.Component {
                     title='上传课程资源'
                     maskClosable={false}
                     onCancel={() => this.setState({ visible: false })}
+                    // onCancel={() => this.props.updateStates({ visible: false })}
                     confirmLoading={this.state.confirmLoading}
                     onOk={() => this.handleUpload()}
                 >
