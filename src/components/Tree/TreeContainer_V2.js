@@ -222,7 +222,18 @@ export default class TreeContainer extends React.Component {
                     const gData = nodeList;
                     const index = gData.findIndex(v => v.nodeKey === node.nodeKey);
                     //处理删除根节点问题和删除非根结点问题
-                    parentNode ? parentNode.children.splice(index, 1) : gData.splice(index, 1)
+                    //children没有TreeNode时候，默认添加占位符
+                    if (!parentNode) {
+                        gData.splice(index, 1);
+                    } else {
+                        parentNode.children.splice(index, 1);
+                        if (!parentNode.children.length) {
+                            parentNode.children.push({
+                                nodeKey: `${node.nodeKey}-0`,
+                                isLeaf: true,
+                            })
+                        }
+                    }
                     return { node }
                 }
             }

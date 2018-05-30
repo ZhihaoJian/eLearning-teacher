@@ -78,7 +78,9 @@ const updateNessaryNode = (newRootNodes, oldTree = []) => {
     //改
     else {
         oldTree.forEach((v, i) => {
-            Object.assign(v, newRootNodes[i]);
+            if (newRootNodes[i].title) {
+                Object.assign(v, newRootNodes[i]);
+            }
         })
         return oldTree;
     }
@@ -115,13 +117,11 @@ export const onLoadChildData = ({ node, courseId, parentKey }) => {
     return (dispatch, getState) => {
         return Axios.post(`/courseNode/findCourseNode/${parentKey}/${courseId}`)
             .then(res => {
-                const resData = res.data.result;
+                const processedData = res.data.result.length ? res.data.result.map(v => ({ ...v, isLeaf: v.leaf })) : [{ nodeKey: `${parentKey}-0`, isLeaf: true, key: `${parentKey}-0` }];
                 if (res.status === 200) {
-                    node.children = resData.length ?
-                        resData.map(v => {
-                            return v.leaf ? { ...v, isLeaf: v.leaf } : { ...v, isLeaf: v.leaf, children: [{ nodeKey: `${v.nodeKey}-0`, isLeaf: true, key: `${v.nodeKey}-0` }] };
-                        }) :
-                        [{ nodeKey: `${node.nodeKey}-0`, isLeaf: true, key: `${node.nodeKey}-0` }];
+                    const oldData = node.children ? [...node.children] : [{ nodeKey: `${parentKey}-0`, isLeaf: true, key: `${parentKey}-0` }];
+                    const treeData = updateNessaryNode(processedData, oldData);
+                    node.children = treeData;
                     dispatch(updateTreeData(getState().folderTreeReducers.treeData))
                 } else {
                     message.error('Oops,稍微出现了一点错误，刷新试试?');
