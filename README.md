@@ -1,3 +1,5 @@
+![https://travis-ci.org/ZhihaoJian/eLearning-teacher.svg?branch=dev]
+
 # 2018.05.23 已知BUG
 
 * 博文上传是否做一个内容长度限制？否则博文过长，后端报错；(Fixed)
