@@ -2,9 +2,12 @@ import React from 'react';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import { withRouter, Link } from 'react-router-dom';
 import { Button, Card, List, Popconfirm, message } from 'antd';
+import DescriptionList from 'ant-design-pro/lib/DescriptionList';
 import AddNoteForm from './AddNoteForm';
 import { loadCourseList, deleteCourse, addCourseInfo } from '../../service/AddExam.service';
 import './index.scss';
+
+const { Description } = DescriptionList;
 
 @withRouter
 export default class PrepareCourse extends React.Component {
@@ -14,7 +17,9 @@ export default class PrepareCourse extends React.Component {
         loadmore: false,
         visible: false,
         confirmLoading: false,
-        courseList: []
+        courseList: [],
+        cachedCourseList: [],
+        tabActiveKey: "1"
     }
 
     componentDidMount() {
@@ -24,7 +29,11 @@ export default class PrepareCourse extends React.Component {
     fetchData = (pageSize = 10, current = 0) => {
         this.setState({ loading: true })
         loadCourseList(pageSize, current).then(res => {
-            this.setState({ courseList: res.content, loading: false })
+            this.setState({
+                cachedCourseList: res.content,
+                courseList: res.content,
+                loading: false
+            })
         })
     }
 
@@ -58,11 +67,55 @@ export default class PrepareCourse extends React.Component {
         this.setState(visible)
     }
 
+    onTabChange = (tabActiveKey) => {
+        const courseList = [...this.state.cachedCourseList]
+        if (tabActiveKey === '2') {
+            this.setState({
+                tabActiveKey,
+                courseList: courseList.filter(v => v.isRelease === 0)
+            })
+        } else if (tabActiveKey === '3') {
+            this.setState({
+                tabActiveKey,
+                courseList: courseList.filter(v => v.isRelease === 1)
+            })
+        } else {
+            this.setState({
+                tabActiveKey,
+                courseList: this.state.cachedCourseList
+            })
+        }
+    }
+
     render() {
+        const { tabActiveKey, cachedCourseList } = this.state;
+        const tabList = [{
+            key: '1',
+            tab: '备课记录',
+        }, {
+            key: '2',
+            tab: '未发布',
+        },
+        {
+            key: '3',
+            tab: '已发布',
+        }];
+        const description = (
+            <DescriptionList size="small" col="3" layout="horizontal">
+                <Description term="课程数量">{cachedCourseList.length}</Description>
+                <Description term="已发布">{cachedCourseList.filter(v => v.isRelease === 0).length}</Description>
+                <Description term="未发布">{cachedCourseList.filter(v => v.isRelease === 1).length}</Description>
+            </DescriptionList>
+        );
+
         return (
             <PageHeaderLayout
                 title={'备课区'}
+                tabList={tabList}
+                tabActiveKey={tabActiveKey}
                 breadcrumbList={this.props.breadcrumbList}
+                content={description}
+                onTabChange={key => this.onTabChange(key)}
                 action={(
                     <Button
                         type='primary'
@@ -71,7 +124,6 @@ export default class PrepareCourse extends React.Component {
                 )}
             >
                 <Card
-                    title='备课记录'
                     bordered={false}
                     className='prepare-course-container'
                 >
@@ -79,12 +131,13 @@ export default class PrepareCourse extends React.Component {
                         className="prepare-course-list"
                         loading={this.state.loading}
                         size='large'
-                        itemLayout="horizontal"
+                        itemLayout="vertical"
                         pagination={{ pageSize: 5 }}
                         loadMore={this.state.loadMore}
                         dataSource={this.state.courseList}
                         renderItem={item => (
                             <List.Item
+                                extra={<img width={272} alt="cover" src={`/${item.coverURL}`} style={{ width: 200 }} />}
                                 actions={
                                     [
                                         <Link to={`/prepare-course/edit?type=edit&key=${item.id}&name=${encodeURIComponent(item.name)}`}>编辑</Link>,
@@ -105,18 +158,17 @@ export default class PrepareCourse extends React.Component {
                                             <div style={{ padding: '12px 0' }} >
                                                 <div>{item.description}</div>
                                                 <div style={{ marginTop: 10 }}>备注：{item.remark}</div>
-                                                <div style={{ marginTop: 10 }} >标签：<a>{item.type}</a></div>
+                                                <div style={{ marginTop: 10 }} >标签：<a>{item.type || '无'}</a></div>
                                             </div>
                                         </React.Fragment>
                                     )}
                                 />
                                 <div className='course-info'>
-                                    <div>发布状态</div>
-                                    <div style={{ padding: '6px 0' }}><a>{item.isRelease ? '已发布' : '未发布'}</a></div>
+                                    发布状态：
+                                    <a>{item.isRelease ? '已发布' : '未发布'}</a>
                                 </div>
-                                <div className='course-info'>
-                                    <div>修改时间</div>
-                                    <div style={{ padding: '6px 0' }}>{(new Date()).toLocaleDateString(item.createTime)}</div>
+                                <div className='course-info' >
+                                    修改时间：<span style={{ paddingLeft: 6 }} >{(new Date()).toLocaleDateString(item.createTime)}</span>
                                 </div>
                             </List.Item>
                         )}
