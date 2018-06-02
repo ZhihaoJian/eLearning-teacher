@@ -15,7 +15,9 @@
 }
 
 #basic-layout .logo {
-    height: 32px;
-    background: rgba(255, 255, 255, .2);
+    height: 40px;
+    background: url(../../assets/logo_small.png) no-repeat;
+    background-position: 50% 50%;
+    background-size: cover;
     margin: 16px;
 }

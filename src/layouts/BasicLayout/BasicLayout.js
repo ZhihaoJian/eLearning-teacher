@@ -1,7 +1,6 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { withRouter } from 'react-router-dom';
-// import { loadDynamicComponent } from '../../common/router';
 import { loadDynamicComponent } from '../../common/router_v2';
 import Footer from '../../components/GlobalFooter/GlobalFooter';
 import GlobalHeader from '../../components/GlobalHeader/index';
@@ -27,11 +26,10 @@ class BasicLayout extends React.Component {
                     collapsible
                     collapsed={this.state.collapsed}
                 >
-                    <div className="logo" />
+                    <a href='/classroom'><div className="logo" ></div></a>
                     <Menu
                         theme="dark"
                         mode="inline"
-                        // selectedKeys={[restProps.selectedPath, this.props.location.pathname]}
                         selectedKeys={restProps.selectedKeys}
                     >
                         {formatedMenuData}
