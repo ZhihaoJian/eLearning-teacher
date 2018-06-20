@@ -10,7 +10,7 @@ import FaHtml5 from 'react-icons/lib/fa/html5';
 import FaCSS3 from 'react-icons/lib/fa/css3';
 import FaVideoCamera from 'react-icons/lib/fa/video-camera';
 import { Tree, Tooltip } from 'antd';
-import NewTree from './NewTree';
+import TreeV2 from './Tree_V2';
 import './index.scss';
 
 const TreeNode = Tree.TreeNode;
@@ -364,6 +364,96 @@ export default class TreeContainer extends React.Component {
         this.props.onAddNodeToServer(newRootNode, dataSource);
     }
 
+    /**
+     * 拖放事件
+     */
+    onDrop = (info) => {
+        console.log(info);
+        let dragObj = null;
+        const syncNodes = [];
+        const data = [...this.props.dataSource];
+        const dropKey = info.node.props.nodeKey;
+        const dragKey = info.dragNode.props.nodeKey;
+        const loop = (data, key, callback) => {
+            data.forEach((item, index, arr) => {
+                if (item.nodeKey === key) {
+                    return callback(item, index, arr);
+                }
+                if (item.children) {
+                    return loop(item.children, key, callback);
+                }
+            });
+        };
+        const loopUpdateKey = (children, parentKey) => {
+            children.forEach((v, idx) => {
+                const nodeKey = v.nodeKey;
+                const newNodeKey = `${parentKey}-${idx}`;
+                Object.assign(v, {
+                    key: newNodeKey,
+                    nodeKey: newNodeKey,
+                    parentKey
+                });
+                if (v.title) {
+                    syncNodes.push({
+                        id: v.id,
+                        nodeKey,
+                        parentKey
+                    });
+                }
+                if (v.children) {
+                    return loopUpdateKey(v.children, nodeKey);
+                }
+            })
+        };
+        loop(data, dragKey, (item, index, arr) => {
+            arr.splice(index, 1);
+            dragObj = item;
+        });
+        //如果是拖放至与其他节点同级
+        if (info.dropToGap) {
+            let ar;
+            let i;
+            loop(data, dropKey, (item, index, arr) => {
+                ar = arr;
+                i = index;
+            });
+            //递归更新结点nodeKey和其余参数            
+            const maxlength = this.findMaxLength(ar);
+            const parentNode = this.findParentNode(dropKey) || data.filter(v => v.nodeKey === dropKey)[0];
+            const parentKey = parentNode.nodeKey;
+            const newNodeKey = `${parentKey}-${maxlength}`;
+            if (parentNode) {
+                Object.assign(dragObj, {
+                    parentKey,
+                    nodeKey: newNodeKey
+                });
+                syncNodes.push({
+                    id: dragObj.id,
+                    nodeKey: newNodeKey,
+                    parentKey
+                });
+                if (dragObj.children) {
+                    loopUpdateKey(dragObj.children, newNodeKey);
+                }
+                ar.splice(i, 0, dragObj);
+            } else {
+                data.splice(i, 0, dragObj);
+            };
+            this.props.syncDragNodes({
+                dataRef: this.state.dataRef,
+                courseNode: { courseNode: syncNodes }
+            })
+            this.props.updateTree(data);
+        }
+    }
+
+    /**
+     * 开始拖拽节点
+     */
+    onDragStart = ({ node }) => {
+        this.setState({ dataRef: node.props.dataRef })
+    }
+
     render() {
         const loop = data => {
             return data.map((item) => {
@@ -387,7 +477,9 @@ export default class TreeContainer extends React.Component {
             });
         };
         return (
-            <NewTree
+            <TreeV2
+                onDragStart={this.onDragStart}
+                onDrop={this.onDrop}
                 loadData={this.props.loadData}
                 renderTreeIcon={this.renderTreeIcon}
                 addRootNode={this.addRootNode}

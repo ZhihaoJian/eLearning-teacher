@@ -166,7 +166,7 @@ const routerConfig = {
 const antIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
 
 
-function getRouteParam(path) {
+export function getRouteParam(path) {
     return { ...QueryString.parse(path) };
 }
 
@@ -174,7 +174,7 @@ function getRouteParam(path) {
  * 格式化URL，作为sider的selectedKey
  * @param {string} pathNamesArray 
  */
-function formatSelectedKey(pathNamesArray) {
+export function formatSelectedKey(pathNamesArray) {
     const selectedPath = [];
     for (let i = 0; i < pathNamesArray.length; i++) {
         let str = pathNamesArray.slice(0, i + 1).join('/');
@@ -222,13 +222,10 @@ function formatMenuData(menuData, routeParam) {
     })
 }
 
-export function loadDynamicComponent(location) {
-    const path = location.pathname;
-    const param = location.search;
-    const routeParam = getRouteParam(param);
-
-    const { component, menuData, breadcrumbList, ...restParam } = getDynamicComponent(path);
-    const formatedMenuData = formatMenuData(menuData, param)
+export function loadDynamicComponent({ pathname, search = "" }) {
+    const routeParam = getRouteParam(search);
+    const { component, menuData, breadcrumbList, ...restParam } = getDynamicComponent(pathname);
+    const formatedMenuData = formatMenuData(menuData, search)
 
     const DynamicComponent = Loadable({
         loader: component,

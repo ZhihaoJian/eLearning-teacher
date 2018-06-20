@@ -18,7 +18,7 @@ class BasicLayout extends React.Component {
 
     render() {
         const { location } = this.props;
-        const { DynamicComponent, formatedMenuData, ...restProps } = loadDynamicComponent(location);
+        const { DynamicComponent, formatedMenuData, ...restProps } = loadDynamicComponent({ ...location });
         return (
             <Layout id='basic-layout' >
                 <Sider

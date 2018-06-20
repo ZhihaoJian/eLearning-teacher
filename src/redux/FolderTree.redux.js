@@ -6,7 +6,7 @@ const UPDATE_TREE_DATA = 'UPDATE_TREE_DATA';
 const UPDATE_EDITOR_CONTENT = 'UPDATE_EDITOR_CONTENT';
 const UPDATE_STATE = 'UPDATE_STATE';
 const RESET_TREE_DATA = 'RESET_TREE_DATA';
-const initState = {
+export const initState = {
     selectKey: '',
     content: '',
     treeData: [],
@@ -93,7 +93,7 @@ const updateNessaryNode = (newRootNodes, oldTree = []) => {
  */
 export const loadTreeRoot = (courseId) => {
     return (dispatch, getState) => {
-        Axios.post(`/courseNode/findCourseNodeByIsRoot/${true}/${courseId}`)
+        return Axios.post(`/courseNode/findCourseNodeByIsRoot/${true}/${courseId}`)
             .then(res => {
                 const responseData = res.data.result;
                 const oldData = [...getState().folderTreeReducers.treeData];
@@ -275,4 +275,21 @@ export const loadFileContent = (nodeID) => {
  */
 export const reset = () => {
     return dispatch => dispatch({ type: RESET_TREE_DATA })
+}
+
+/**
+ * 同步拖拽节点
+ * @param {Array} dragNodes 拖拽结点数组，元素是拖拽对象
+ */
+export const syncDragNodes = (dragNodes) => {
+    return dispatch => {
+        return Axios.post('/courseNode/dragNode', dragNodes)
+            .then(res => {
+                if (res.status === 200) {
+                    console.log(res.data);
+                } else {
+                    message.error('出现了点小错误!重新试试?');
+                }
+            })
+    }
 }
