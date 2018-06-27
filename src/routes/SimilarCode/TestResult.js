@@ -74,11 +74,10 @@ export default class TestResult extends React.Component {
 
         return (
             <div className='test-result-container' >
-                <Card bordered={false} >
+                <Card bordered={false} title='检测结果' >
                     <Table
                         rowKey={record => record.orgin_file_name}
                         columns={columns}
-                        title={() => '检测结果'}
                         dataSource={this.props.dataSource}
                         expandedRowRender={this.expandedRowRender}
                         expandRowByClick={true}

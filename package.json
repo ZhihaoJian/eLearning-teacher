@@ -135,6 +135,10 @@
       "target": "http://192.168.88.33:5000",
       "changeOrigin": true
     },
+    "/status": {
+      "target": "http://192.168.88.33:5000",
+      "changeOrigin": true
+    },
     "coverImage": {
       "target": "http://192.168.88.2:9090",
       "changeOrigin": true

@@ -7,3 +7,13 @@ export const detectCode = (formData) => {
         data: formData
     })
 }
+
+/**
+ * 队列检测
+ */
+export const fetchProcessQueryStatus = (url) => {
+    return request({
+        method: 'get',
+        url
+    })
+}
