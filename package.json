@@ -127,6 +127,10 @@
     "sass-loader": "^7.0.1"
   },
   "proxy": {
+    "/login": {
+      "target": "http://192.168.88.2:9090",
+      "changeOrigin": true
+    },
     "/teacher": {
       "target": "http://192.168.88.2:9090",
       "changeOrigin": true

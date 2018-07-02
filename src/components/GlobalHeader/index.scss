@@ -38,8 +38,10 @@ $header-icon-padding:0 12px;
     width: 120px;
     .menu-item {
         transition: 0.5s background;
+        padding: 3px 6px;
         &:hover {
             cursor: pointer;
+            background: $header-hover-color;
         }
     }
     .setting-name {
