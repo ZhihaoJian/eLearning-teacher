@@ -160,6 +160,14 @@ const routerConfig = {
         ],
         menuData: ClassRoomMenuData,
         component: () => import('../routes/SimilarCode/SimilarCode')
+    },
+    '404': {
+        component: () => import('../components/Exception/404/404'),
+        menuData: BasicMenuData
+    },
+    '403': {
+        component: () => import('../components/Exception/403/403'),
+        menuData: BasicMenuData
     }
 }
 
@@ -198,10 +206,14 @@ function getDynamicComponent(path) {
     for (let i = 0; i < pathNamesArray.length; i++) {
         parentPathConfig = currentPathConfig[pathNamesArray[i]];
         const currentPath = currentPathConfig[pathNamesArray[i]];
-        const hasChildPath = currentPath.childPath ? true : false;
-        currentPathConfig = hasChildPath ? currentPath.childPath : null;
-        if (!currentPathConfig) {
-            return { ...currentPath, selectedKeys: formatSelectedKey(pathNamesArray) }
+        if (currentPath) {
+            const hasChildPath = currentPath.childPath ? true : false;
+            currentPathConfig = hasChildPath ? currentPath.childPath : null;
+            if (!currentPathConfig) {
+                return { ...currentPath, selectedKeys: formatSelectedKey(pathNamesArray) }
+            }
+        } else {
+            return routerConfig['404'];
         }
     }
     if (!getComponent) {

@@ -5,15 +5,9 @@ import moment from 'moment';
 import groupBy from 'lodash/groupBy';
 import React from 'react';
 import './index.scss';
+import { withRouter } from 'react-router-dom';
+import { Utils } from '../../utils/utils';
 const { Header } = Layout;
-
-
-const avatarPopMenu = (
-    <div className='avatar-pop-menu' >
-        <div className='menu-item' ><Icon type="user" className='icon' /><span className='setting-name'>个人中心</span></div>
-        <div className='menu-item' ><Icon type="tool" className='icon' /><span className='setting-name'>设置</span></div>
-    </div>
-)
 
 const data = [
     {
@@ -100,7 +94,7 @@ const data = [
 
 
 
-
+@withRouter
 export default class GlobalHeader extends React.Component {
 
     toggle = () => {
@@ -143,12 +137,22 @@ export default class GlobalHeader extends React.Component {
         return groupBy(newNotices, 'type');
     }
 
-    onAvatarClick = () => {
-
+    onLogout = (e) => {
+        e.stopPropagation();
+        Utils.removeItemFromLocalStorage();
+        this.props.history.push('/signin');
     }
 
     render() {
         const noticeData = this.getNoticeData(data);
+        const avatarPopMenu = (
+            <div className='avatar-pop-menu' >
+                <div className='menu-item' ><Icon type="user" className='icon' /><span className='setting-name'>个人中心</span></div>
+                <div className='menu-item' ><Icon type="tool" className='icon' /><span className='setting-name'>设置</span></div>
+                <div className='menu-item' onClick={e => this.onLogout(e)}  ><Icon type="logout" /><span className='setting-name'>登出</span></div>
+            </div>
+        )
+
         return (
             <Header className='header' >
                 <Icon
@@ -194,8 +198,8 @@ export default class GlobalHeader extends React.Component {
                             emptyImage="https://gw.alipayobjects.com/zos/rmsportal/HsIsxMZiWKrNUavQUXqx.svg"
                         />
                     </NoticeIcon>
-                    <Popover content={avatarPopMenu} placement='bottom' >
-                        <div className='avatar-container' onClick={this.onAvatarClick} >
+                    <Popover content={avatarPopMenu} placement='bottom'>
+                        <div className='avatar-container' >
                             <Avatar size='small' icon="user" className='avatar' />
                             <span className='name' >JianZhihao</span>
                         </div>
