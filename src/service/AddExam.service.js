@@ -1,4 +1,5 @@
 import { request } from '../utils/fetch';
+import { message } from 'antd';
 
 export const loadCourseList = (pageSize, current) => {
     return request({
@@ -25,79 +26,15 @@ export const addCourseInfo = (formData) => {
     }).then(response => response.id);
 }
 
-export const uploadCourseResource = formData => {
-    return request({
-        method: 'post',
-        url: `/courseNode/addCourseVideo`,
-        data: formData
-    });
-}
-
 /**
- * 添加节点
- * @param {object} node 
+ * 发布备课信息
+ * @param {String} courseId 课程ID
  */
-export const onAddTreeNode = (data) => {
+export const announceCourse = (courseId) => {
     return request({
         method: 'post',
-        url: `/courseNode/addCourseNode`,
-        data
-    });
-}
-
-/**
- * 加载tree的root节点
- */
-export const onLoadTree = (courseId) => {
-    return request({
-        method: 'post',
-        url: `/courseNode/findCourseNodeByIsRoot/${true}/${courseId}`,
-    });
-}
-
-/**
- * 展开tree node 加载 child node
- * @param {string} key 展开结点的 key
- */
-export const onLoadChildData = (key, courseId) => {
-    return request({
-        method: 'post',
-        url: `/courseNode/findCourseNode/${key}/${courseId}`
-    })
-}
-
-/**
- * 删除制定节点
- * @param {string} key 选中删除节点的key值
- */
-export const onDeleteNode = (key) => {
-    return request({
-        method: 'post',
-        url: `/courseNode/delCourseNode/${key}`
-    })
-}
-
-/**
- * 修改节点名称 
- * @param {*} data 节点信息，包含节点ID和修改的名称
- */
-export const onUpdateNodeName = (data) => {
-    return request({
-        method: 'post',
-        url: `/courseNode/updateCourseNodeName`,
-        data
-    })
-}
-
-
-/**
- * 同步文本内容
- * @param {Object} data 保存信息
- */
-export const updateCourseNodeContent = (data) => {
-    return request({
-        method: 'post',
-        url: `/courseNode/updateContentById`,
-        data
+        url: `/teacher/announceCourse/${courseId}`,
+    }).then(res => {
+        message.success(res)
     })
 }
