@@ -1,6 +1,7 @@
 import React from 'react';
 import { Table, Progress, Card } from 'antd';
 import './test-result.scss';
+import { Utils } from '../../utils/utils';
 
 export default class TestResult extends React.Component {
 

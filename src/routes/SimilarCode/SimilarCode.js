@@ -8,6 +8,17 @@ import { STATUS_CODES, STATUS_TITLE } from './_variable';
 const Step = Steps.Step;
 const Option = Select.Option;
 
+function stepsShowError() {
+    this.setState({
+        current: 1,
+        stepsStatus: 'error',
+        status: STATUS_CODES.ERROR,
+        title: STATUS_TITLE.ERROR_TITLE
+    });
+}
+
+
+
 @withRouter
 export default class SimilarCode extends React.Component {
 
@@ -19,7 +30,8 @@ export default class SimilarCode extends React.Component {
             detectLevel: { key: 'l' },
             current: 0,
             status: STATUS_CODES.DEFAULT,
-            title: STATUS_TITLE.PENDING_TITLE
+            title: STATUS_TITLE.PENDING_TITLE,
+            stepsStatus: '' //步骤条状态 error
         }
     }
 
@@ -27,23 +39,33 @@ export default class SimilarCode extends React.Component {
      * 轮询任务队列
      */
     fetchProcessStatus = (url) => {
+        //如果不存在URL在steps报错
+        if (!url) {
+            stepsShowError.apply(this);
+            return;
+        }
         return fetchProcessQueryStatus(url).then(res => {
-            const title = this.renderProcessStepTitle(res.state);
-            if (res.state !== STATUS_CODES.SUCCESS) {
-                setTimeout(() => {
-                    this.setState({ data: res, title }, () => {
-                        this.fetchProcessStatus(url);
+            try {
+                const state = res.state;
+                const title = this.renderProcessStepTitle(state);
+                if (state !== STATUS_CODES.SUCCESS) {
+                    setTimeout(() => {
+                        this.setState({ data: res, title, status: state }, () => {
+                            this.fetchProcessStatus(url);
+                        })
+                    }, 2500);
+                }
+                else {
+                    const { current } = this.state;
+                    this.setState({
+                        data: res,
+                        current: current + 1,
+                        status: state,
+                        title
                     })
-                }, 2500);
-            }
-            else {
-                const { current } = this.state;
-                this.setState({
-                    data: res,
-                    current: current + 1,
-                    status: res.result.state,
-                    title
-                })
+                }
+            } catch (error) {
+                stepsShowError.apply(this);
             }
         })
     }
@@ -54,7 +76,13 @@ export default class SimilarCode extends React.Component {
     handleUpload = (e) => {
         e.stopPropagation();
 
-        this.setState({ current: 0, status: '', data: null }, () => {
+        this.setState({
+            current: 0,
+            status: '',
+            stepsStatus: '',
+            data: null,
+            title: STATUS_TITLE.PENDING_TITLE
+        }, () => {
             const { fileList, current } = this.state;
             const formData = new FormData();
 
@@ -91,7 +119,7 @@ export default class SimilarCode extends React.Component {
         const { status } = this.state;
         if (status === STATUS_CODES.DEFAULT || status === STATUS_CODES.SUCCESS) {
             return null;
-        } else if (status === STATUS_CODES.PENDING) {
+        } else if (status === STATUS_CODES.PENDING || status === STATUS_CODES.PROGRESS) {
             return (<Icon type='loading' />)
         }
     }
@@ -102,12 +130,24 @@ export default class SimilarCode extends React.Component {
     renderProcessStepTitle = (status) => {
         if (status === STATUS_CODES.PENDING || status === STATUS_CODES.DEFAULT) {
             return STATUS_TITLE.PENDING_TITLE;
-        } else if (status === STATUS_CODES.PROGRESS || STATUS_CODES.SUCCESS) {
+        } else if (status === STATUS_CODES.PROGRESS || status === STATUS_CODES.SUCCESS) {
             return STATUS_TITLE.PROGRESS_TITLE;
-        } 
-        // else if (status === STATUS_CODES.SUCCESS) {
-        //     return STATUS_TITLE.SUCCESS_TITLE;
-        // }
+        } else if (status === STATUS_CODES.ERROR) {
+            return STATUS_TITLE.ERROR_TITLE;
+        }
+    }
+
+    /**
+     * 渲染loading时候的描述
+     */
+    renderLoadingDesc = (queryStatusPercentage) => {
+        if (this.state.status === STATUS_CODES.PENDING) {
+            return '正在提交任务';
+        } else if (this.state.status === STATUS_CODES.PROGRESS) {
+            return <small>已检测  {queryStatusPercentage} %</small>
+        } else {
+            return '';
+        }
     }
 
     render() {
@@ -158,12 +198,7 @@ export default class SimilarCode extends React.Component {
         }, {
             title: this.state.title,
             icon: this.renderProcessStep(),
-            description: (
-                <React.Fragment>
-                    {this.state.data ? (
-                        <small>已检测  {queryStatusPercentage} %</small>
-                    ) : null}
-                </React.Fragment>)
+            description: this.renderLoadingDesc(queryStatusPercentage)
         }, {
             title: STATUS_TITLE.SUCCESS_TITLE
         }];
@@ -184,7 +219,7 @@ export default class SimilarCode extends React.Component {
                 )}
             >
                 <Card title='检测进度' >
-                    <Steps current={this.state.current}  >
+                    <Steps current={this.state.current} status={this.state.stepsStatus} >
                         {steps.map(item => <Step key={item.title} {...item} />)}
                     </Steps>
                 </Card>
