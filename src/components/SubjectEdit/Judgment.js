@@ -4,7 +4,8 @@ import BaseQuestionLayout from './BaseQuestionLayout';
 import PropTypes from 'prop-types';
 const RadioGroup = Radio.Group;
 
-class Judgment extends React.Component {
+@BaseQuestionLayout
+export default class Judgment extends React.Component {
 
     constructor(props) {
         super(props);
@@ -42,4 +43,4 @@ Judgment.propTypes = {
     answer: PropTypes.bool
 }
 
-export default BaseQuestionLayout(Judgment);
+// export default BaseQuestionLayout(Judgment);

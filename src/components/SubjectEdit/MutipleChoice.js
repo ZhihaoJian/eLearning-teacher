@@ -7,7 +7,8 @@ const CheckboxGroup = Checkbox.Group;
 const ADD = 'ADD';
 const CANCEL = 'CANCEL';
 
-class MutipleChoice extends React.Component {
+@BaseQuestionLayout
+export default class MutipleChoice extends React.Component {
 
     constructor(props) {
         super(props);
@@ -78,5 +79,5 @@ MutipleChoice.propTypes = {
     onChange: PropTypes.func
 }
 
-export default BaseQuestionLayout(MutipleChoice);
+// export default BaseQuestionLayout(MutipleChoice);
 

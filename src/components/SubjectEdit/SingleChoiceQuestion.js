@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import { Radio, Input } from 'antd';
 const RadioGroup = Radio.Group;
 
-
-class SingleChoiceQuestion extends React.Component {
+@BaseQuestionLayout
+export default class SingleChoiceQuestion extends React.Component {
 
     constructor(props) {
         super(props);
@@ -61,4 +61,4 @@ SingleChoiceQuestion.propTypes = {
     onChange: PropTypes.func
 }
 
-export default BaseQuestionLayout(SingleChoiceQuestion)
+// export default BaseQuestionLayout(SingleChoiceQuestion)
