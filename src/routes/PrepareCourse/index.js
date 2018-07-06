@@ -103,8 +103,8 @@ export default class PrepareCourse extends React.Component {
         const description = (
             <DescriptionList size="small" col="3" layout="horizontal">
                 <Description term="课程数量">{cachedCourseList.length}</Description>
-                <Description term="已发布">{cachedCourseList.filter(v => v.isRelease === 0).length}</Description>
-                <Description term="未发布">{cachedCourseList.filter(v => v.isRelease === 1).length}</Description>
+                <Description term="已发布">{cachedCourseList.filter(v => v.isRelease === 1).length}</Description>
+                <Description term="未发布">{cachedCourseList.filter(v => v.isRelease === 0).length}</Description>
             </DescriptionList>
         );
 

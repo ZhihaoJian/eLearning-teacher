@@ -6,6 +6,7 @@ import { editorConfig } from '../../common/editor-config';
 import ButtonGroup from 'antd/lib/button/button-group';
 import QueryString from '../../utils/query-string';
 import { COURSE_RESOURCE_PROPS_CONFIG } from '../../common/upload.config';
+import { announceCourse } from '../../service/AddExam.service';
 import { Player } from 'video-react';
 import { withRouter } from 'react-router-dom';
 import {
@@ -20,10 +21,10 @@ import {
     saveEditorContent,
     updateCourseVideo,
     loadFileContent,
-    reset
+    reset,
+    syncDragNodes
 } from '../../redux/FolderTree.redux';
 import { connect } from 'react-redux';
-// import TreeContainer from '../../components/Tree/TreeContainer'
 import TreeContainer from '../../components/Tree/TreeContainer_V2'
 
 import './AddNote.scss';
@@ -46,7 +47,8 @@ const Dragger = Upload.Dragger;
         updateStates,
         updateCourseVideo,
         loadFileContent,
-        reset
+        reset,
+        syncDragNodes
     }
 )
 export default class AddNote extends React.Component {
@@ -209,21 +211,17 @@ export default class AddNote extends React.Component {
             const { node } = info;
             this.props.deleteNode(node.id)
                 .then(() => {
-                    if (node.rootNode) {
-                        this.props.loadTreeRoot(node.courseId);
-                    } else {
+                    node.rootNode ?
+                        this.props.loadTreeRoot(node.courseId) :
                         this.props.onLoadChildData({
                             node,
                             courseId: this.state.courseId,
                             parentKey: node.parentKey
                         });
-                    }
                 })
         }
         this.props.updateTree(newTreeData, () => {
-            if (this.editorInstance) {
-                this.editorInstance.setContent('');
-            }
+            this.editorInstance && this.editorInstance.setContent('')
         })
     }
 
@@ -293,6 +291,31 @@ export default class AddNote extends React.Component {
         });
     }
 
+    /**
+     * 发布备课
+     */
+    onAnnounceCourse = () => {
+        announceCourse(this.state.courseId);
+    }
+
+    /**
+     * 同步拖拽结点
+     */
+    syncDragNodes = (dragedNodes) => {
+        const { dataRef, courseNode } = dragedNodes;
+        this.props
+            .onLoadChildData({
+                node: dataRef,
+                parentKey: dataRef.parentKey,
+                courseId: this.state.courseId
+            })
+            .then(() => {
+                console.log(this.props.treeData);
+                this.props.syncDragNodes(courseNode);
+            })
+    }
+
+
     render() {
         const title = QueryString.parse(this.props.location.search).type === 'edit' ? '编辑备课' : '新建备课';
         const editorProps = editorConfig(this.handleChange, this.handleSave);
@@ -300,7 +323,7 @@ export default class AddNote extends React.Component {
             <React.Fragment>
                 <ButtonGroup>
                     <Button onClick={() => this.handleSyncContent()}>保存</Button>
-                    <Button type="primary" >发布</Button>
+                    <Button type="primary" onClick={this.onAnnounceCourse} >发布</Button>
                 </ButtonGroup>
             </React.Fragment>
         );
@@ -320,6 +343,7 @@ export default class AddNote extends React.Component {
                         >
                             <TreeContainer
                                 loadData={this.fetchChildNode}
+                                syncDragNodes={dragedNodes => this.syncDragNodes(dragedNodes)}
                                 onUpdateNodeName={info => this.updateNodeName(info)}
                                 onAddNodeToServer={(node, gData) => this.onAddNodeToServer(node, gData)}
                                 onUpload={(uploadData) => this.onUpload(uploadData)}
@@ -356,7 +380,6 @@ export default class AddNote extends React.Component {
                     title='上传课程资源'
                     maskClosable={false}
                     onCancel={() => this.setState({ visible: false })}
-                    // onCancel={() => this.props.updateStates({ visible: false })}
                     confirmLoading={this.state.confirmLoading}
                     onOk={() => this.handleUpload()}
                 >

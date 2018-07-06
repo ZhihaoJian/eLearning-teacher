@@ -14,15 +14,18 @@ export default class EditExamArea extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            type: '',
-            editExamVisible: false,
-            addExamVisible: false,
-            quiz: null,
+            type: '',               //题目类型
+            editExamVisible: false, //编辑测试模态框
+            addExamVisible: false,  //添加测试模态框
+            quiz: null,             //用户编写问题实例
             saveLoading: false,
             publishLoading: false
         }
     }
 
+    /**
+     * 根据不同的题目类型渲染不同题目实例
+     */
     renderQuiz = (data) => {
         let card;
         if (data.type === '单选题') {
@@ -159,6 +162,7 @@ export default class EditExamArea extends React.Component {
                         )}
                     />
                 </Card>
+                {/* 添加测试 */}
                 <EditModal
                     showTitle={true}
                     visible={this.state.addExamVisible}
@@ -166,8 +170,11 @@ export default class EditExamArea extends React.Component {
                     onCancel={({ addExamVisible, type }) => {
                         this.setState({ addExamVisible, type })
                     }}
-                        updateExamQuestion={type => this.props.updateExamQuestion({ type })}
+                    updateExamQuestion={type => {
+                        this.props.updateExamQuestion({ type })
+                    }}
                 />
+                {/* 编辑测试 */}
                 <EditModal
                     type={this.state.type}
                     visible={this.state.editExamVisible}
@@ -176,7 +183,7 @@ export default class EditExamArea extends React.Component {
                         this.setState({ editExamVisible, type })
                     }}
                     updateExamQuestion={type => this.props.updateExamQuestion({ type })}
-                    data={data[0]}
+                    data={data.filter(v => v.type === this.state.type)[0]}
                 />
             </PageHeaderLayout>
         )
