@@ -57,9 +57,9 @@ export default class EditModal extends React.Component {
                 {
                     DynamicComponent ?
                         <DynamicComponent
-                            data={data}
-                            {...this.props}
+                            data={data ? data : []}
                             type={type}
+                            {...this.props}
                         /> : null
                 }
             </Modal>
@@ -84,6 +84,7 @@ EditModal.propTypes = {
 EditModal.defaultProps = {
     title: '编辑试题',
     showTitle: false,
+    visible: false,
     data: [],
     type: ''
 }
