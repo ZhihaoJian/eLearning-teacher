@@ -22,11 +22,16 @@ class BasicLayout extends React.Component {
         return (
             <Layout id='basic-layout' >
                 <Sider
+                    theme='light'
                     trigger={null}
                     collapsible
                     collapsed={this.state.collapsed}
                 >
-                    <a href='/classroom'><div className="logo" ></div></a>
+                    <div>
+                        <a href='/classroom'>
+                            <div className="logo" ></div>
+                        </a>
+                    </div>
                     <Menu
                         theme="dark"
                         mode="inline"
@@ -40,7 +45,7 @@ class BasicLayout extends React.Component {
                         collapsed={this.state.collapsed}
                         toggle={collapsed => this.setState({ collapsed })}
                     />
-                    <Content style={{ margin: '24px 24px 0px', height: '100%' }}>
+                    <Content style={{ margin: '24px 24px 0px' }}>
                         <DynamicComponent
                             {...restProps}
                         />
