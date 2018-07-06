@@ -1,3 +1,5 @@
+import { Modal } from 'antd';
+
 /**
  * 通用工具
  */
@@ -33,6 +35,23 @@ const Utils = (function (window) {
             } else {
                 console.warn('You should pass a key to access localstorage');
             }
+        },
+        /**
+         * 各类操作成功后的模态框
+         */
+        success: function (msg = '') {
+            const modal = Modal.success({
+                title: '操作成功',
+                content: msg,
+            });
+            setTimeout(() => modal.destroy(), 1000);
+        },
+        error: function (msg = '') {
+            const modal = Modal.error({
+                title: '操作失败',
+                content: msg
+            });
+            setTimeout(() => modal.destroy(), 1000);
         }
     }
 })(window)
