@@ -204,35 +204,72 @@ export const treeData = [
 
 export const classroomData = [
     {
-        title: '商业软件1班',
+        name: '商业软件1班',
         navLink: '/classroom/room?roomid=123&name=商业软件1班',
         cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
         description: 'This is the description'
     },
     {
-        title: '商业软件2班',
+        name: '商业软件2班',
         navLink: '/classroom/room?roomid=123&name=商业软件2班',
         cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
         description: 'This is the description'
     }
     , {
-        title: '商业软件3班',
+        name: '商业软件3班',
         navLink: '/classroom/room?roomid=123&name=商业软件3班',
         cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
         description: 'This is the description'
     }, {
-        title: '数媒一班',
+        name: '数媒一班',
         navLink: '/classroom/room?roomid=123&name=数媒一班',
         cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
         description: 'This is the description'
     }, {
-        title: '数媒二班',
+        name: '数媒二班',
         navLink: '/classroom/room?roomid=123&name=数媒二班',
         cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
         description: 'This is the description'
     },
     {
-        title: '网工一班',
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    },
+    {
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    }, {
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    }, {
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    },
+    {
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    }, {
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    }, {
+        name: '网工一班',
+        navLink: '/classroom/room?roomid=123&name=网工一班',
+        cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
+        description: 'This is the description'
+    }, {
+        name: '网工一班',
         navLink: '/classroom/room?roomid=123&name=网工一班',
         cover: 'https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png',
         description: 'This is the description'
