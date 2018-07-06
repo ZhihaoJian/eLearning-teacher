@@ -1,0 +1,33 @@
+$font-size:20px;
+//分享图标配置
+.opera-icon {
+    text-align: center;
+    display: flex;
+    justify-content: space-around;
+    >i {
+        font-size: $font-size; // margin-right: 10px;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+    >i:first-child {
+        color: rgb(18, 183, 245);
+    }
+    >i:nth-child(2) {
+        color: rgb(60, 176, 52);
+    }
+    >i:nth-child(3) {
+        color: rgb(220, 78, 66);
+    }
+}
+
+.extra-opera {
+    >i {
+        &:hover {
+            cursor: pointer;
+        }
+    }
+    >i:first-child {
+        color: red;
+    }
+}
