@@ -1,7 +1,7 @@
 import React from 'react';
 import Exception from 'ant-design-pro/lib/Exception';
 import { Button } from 'antd';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default class NotFoundPage extends React.Component {
     render() {
