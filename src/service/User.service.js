@@ -8,7 +8,7 @@ import { Utils } from '../utils/utils';
  */
 export const Register = (data) => {
     return request({
-        url: '/login/register',
+        url: '/authority/register',
         data,
         method: 'post'
     }).then(res => {
@@ -24,7 +24,7 @@ export const Register = (data) => {
  * @param {String} captcha 
  */
 export const validateCaptcha = (captcha) => {
-    return Axios.post(`/login/imgvrifyDefaultKaptcha/${captcha}`).then(res => res.data.success);
+    return Axios.post(`/authority/verify/${captcha}`).then(res => res.data.success);
 }
 
 /**
@@ -33,7 +33,7 @@ export const validateCaptcha = (captcha) => {
  */
 export const UserLogin = (data) => {
     return request({
-        url: '/login/login',
+        url: '/authority/login',
         data,
         method: 'post'
     }).then(res => {

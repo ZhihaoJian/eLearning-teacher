@@ -78,7 +78,7 @@
       "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,mjs}"
     ],
     "testEnvironment": "node",
-    "testURL": "http://192.168.88.2:9090",
+    "testURL": "http://a808013b.ngrok.io/",
     "transform": {
       "^.+\\.(js|jsx|mjs)$": "<rootDir>/node_modules/babel-jest",
       "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
@@ -127,12 +127,12 @@
     "sass-loader": "^7.0.1"
   },
   "proxy": {
-    "/login": {
-      "target": "http://192.168.88.2:9090",
+    "/authority": {
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/teacher": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/detect": {
@@ -144,35 +144,35 @@
       "changeOrigin": true
     },
     "coverImage": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/course": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/courseNode": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/import": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/image": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/coursevideo": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "coursetext": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     },
     "/grade": {
-      "target": "http://192.168.88.2:9090",
+      "target": "http://a808013b.ngrok.io/",
       "changeOrigin": true
     }
   }

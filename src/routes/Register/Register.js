@@ -28,7 +28,7 @@ class RegisterPage extends React.Component {
         const formData = this.props.form.getFieldsValue();
         const { email, password, confirmPwd } = formData;
         const role = [];
-        role.push({ name: formData.role })
+        role.push({ roleName: formData.role })
         formData.role = role;
         formData.username = formData.email;
         this.setState({ formIsValidate: true }, () => {
@@ -55,7 +55,7 @@ class RegisterPage extends React.Component {
             that.innerHTML = '';
             that.appendChild(img);
         }
-        img.src = '/login/defaultKaptcha';
+        img.src = '/authority/verifyCode';
     }
 
     /**
@@ -157,7 +157,7 @@ class RegisterPage extends React.Component {
                                     }
                                 </Col>
                                 <Col span={7} >
-                                    <div onClick={this.switchCaptcha} style={{ cursor: 'pointer' }} title='点击更换验证码' ><img src='/login/defaultKaptcha' alt='captcha' /> </div>
+                                    <div onClick={this.switchCaptcha} style={{ cursor: 'pointer' }} title='点击更换验证码' ><img src='/authority/verifyCode' alt='captcha' /> </div>
                                 </Col>
                             </InputGroup>
                         </FormItem>
