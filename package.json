@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "ant-design-pro": "^1.3.0",
-    "antd": "^3.5.0",
+    "ant-design-pro": "^2.1.1",
+    "antd": "^3.11.0",
     "autoprefixer": "7.1.6",
     "axios": "^0.18.0",
     "babel-core": "6.26.0",
@@ -78,7 +78,7 @@
       "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,mjs}"
     ],
     "testEnvironment": "node",
-    "testURL": "http://a808013b.ngrok.io/",
+    "testURL": "http://134.175.32.71:9090/",
     "transform": {
       "^.+\\.(js|jsx|mjs)$": "<rootDir>/node_modules/babel-jest",
       "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
@@ -128,11 +128,11 @@
   },
   "proxy": {
     "/authority": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/teacher": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/detect": {
@@ -144,35 +144,35 @@
       "changeOrigin": true
     },
     "coverImage": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/course": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/courseNode": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/import": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/image": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/coursevideo": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "coursetext": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     },
     "/grade": {
-      "target": "http://a808013b.ngrok.io/",
+      "target": "http://134.175.32.71:9090/",
       "changeOrigin": true
     }
   }
